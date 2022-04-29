@@ -1,10 +1,24 @@
 # This script converts letters encoded in XML to LaTeX files.
 # Author: gaborpalko
-# TODO Everythhing!
+# TODO hi_rend regex vagy függvény
 
 import time
 import os
 from bs4 import BeautifulSoup
+import re
+
+
+def hi_rend(soup):
+    soup = str(soup).replace("\n", "")
+    soup = re.sub('\s+', " ", soup)
+    soup = re.sub('<hi +rend *= *"italic" *>(.*?)(:?)(?:</hi>)',
+                  '\\\\textit{\\1}\\2', soup)
+    soup = re.sub('<hi +rend *= *"smallcap" *>(.*?)(:?)(?:</hi>)',
+                  '\\\\textsc{\\1}\\2', soup)
+    soup = re.sub('<hi +rend *= *"bold" *>(.*?)(:?)(?:</hi>)',
+                  '\\\\textbf{\\1}\\2', soup)
+    soup = BeautifulSoup(soup, "xml")
+    return(soup)
 
 
 def make_latex(xml, latex):
@@ -16,6 +30,10 @@ def make_latex(xml, latex):
             with open("begin.txt", "r", encoding="utf8") as f_begin:
                 begin = f_begin.read()
                 f_latex.write(begin)
+
+            # Delete <ref> tags
+            for i in sp.find_all("ref"):
+                i.extract()
 
             # Insert title
             title = str(sp.TEI.teiHeader.fileDesc.titleStmt.title.text)
@@ -30,11 +48,21 @@ def make_latex(xml, latex):
                           + institution + ", " + repository + "\n\n")
 
             # Insert critintro (Notes, Photo copy)
-            critIntro = sp.notesStmt.find("note", attrs= {"type": "critIntro"})
-            critIntro_notes = str(critIntro.p.text).lstrip("Notes:")
-            critIntro_photo = str(critIntro.p.find_next_sibling().text).lstrip("Photo copy:")
-            f_latex.write("\\textbf{Notes}: " + critIntro_notes + "\n\n" + "\\textbf{Photo copy}: " + critIntro_photo
-                          + "\n\n")
+            critIntro = sp.notesStmt.find_all("note", attrs= {"type": "critIntro"})
+            for i in critIntro:
+                i = hi_rend(i).text
+                i = str(i).replace("\n", "")
+                f_latex.write(i + "\n\n")
+
+            # Insert publication
+            publication = sp.notesStmt.find("note", attrs={"type": "publication"})
+            publication = hi_rend(publication)
+            f_latex.write(str(publication.text) + "\n\n")
+
+            # Insert translation
+            translation = sp.notesStmt.find("note", attrs= {"type": "translation"})
+            translation = hi_rend(translation)
+            f_latex.write(str(translation.text) + "\n\n")
 
 
 if __name__ == '__main__':
