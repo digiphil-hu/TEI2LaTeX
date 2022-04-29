@@ -1,0 +1,21 @@
+\documentclass[11pt,a4paper]{book}
+\usepackage[LUC,T1]{fontenc}
+\usepackage{fontspec}
+\usepackage{xunicode}
+\usepackage{xltxtra}
+\usepackage[latin,english]{babel}
+
+\usepackage[bookmarks=true,
+    bookmarksnumbered=false,
+    bookmarksopen=false,
+    breaklinks=false,
+    pdfborder={0 0 0},
+    backref=false,
+    pagebackref=false,
+    colorlinks=false]
+    {hyperref}
+
+\usepackage[parapparatus, series={A}]{reledmac}
+\fnpos{critical-familiar}
+
+\begin{document}
