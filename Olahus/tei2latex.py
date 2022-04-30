@@ -1,6 +1,7 @@
 # This script converts letters encoded in XML to LaTeX files.
 # Author: gaborpalko
-# TODO hi_rend regex vagy függvény
+# TODO TEI XML pre-processing: <?oxy...> comment removal
+# TODO TEI XML pre-processing: _1 filename change to -1: "([^\.]15\d\d\d\d\d\d)(_)(\d)" => \1-\3
 
 import time
 import os
@@ -8,8 +9,15 @@ from bs4 import BeautifulSoup
 import re
 
 
+def normalize_text(string):
+    # Input and output: STRING!!!!
+    string = re.sub("[\n\t\s]+", " ", string)
+    return string
+
+
 def hi_rend(soup):
-    soup = str(soup).replace("\n", "")
+    # Input and output: soup object
+    soup = normalize_text(str(soup))
     soup = re.sub('\s+', " ", soup)
     soup = re.sub('<hi +rend *= *"italic" *>(.*?)(:?)(?:</hi>)',
                   '\\\\textit{\\1}\\2', soup)
@@ -21,48 +29,98 @@ def hi_rend(soup):
     return(soup)
 
 
-def make_latex(xml, latex):
+def header2latex(soup):
+    header_str = ""
+
+    # Insert LaTeX doc header
+    with open("begin.txt", "r", encoding="utf8") as f_begin:
+        begin = f_begin.read()
+        header_str += begin
+
+    header_str += "\n" + "\\begin{center}" + "\n"
+
+    # Insert title
+    title = str(soup.fileDesc.titleStmt.title.text)
+    title = normalize_text(title)
+    header_str += "\n" + "\\section{" + title + "}" + "\n\n"
+
+    # Insert manuscript description
+    country = str(soup.country.text)
+    settlement = str(soup.settlement.text)
+    institution = str(soup.institution.text)
+    repository = str(soup.repository.text)
+    header_str += "\\textit{Manuscript used}: " + country + ", " + settlement + ", "\
+                 + institution + ", " + repository + "\n\n"
+
+    # Insert critIntro (Notes, Photo copy). Runs only on each <p> in critIntro
+    critIntro = soup.notesStmt.find_all("note", attrs={"type": "critIntro"})
+    for i in critIntro:
+        for p in i.find_all("p"):
+            p = hi_rend(p).text
+            header_str += p + "\n\n"
+
+    # Insert publication
+    for publication in soup.notesStmt.find_all("note", attrs={"type": "publication"}):
+        publication = hi_rend(publication)
+        header_str += str(publication.text) + "\n"
+
+    # Insert translation
+    for translation in soup.notesStmt.find("note", attrs={"type": "translation"}):
+        translation = hi_rend(translation)
+        header_str += str(translation.text) + "\n"
+
+    header_str += "\n" + "\end{center}" + "\n"
+
+    return header_str
+
+
+def text2latex(soup):
+    text_latex = ""
+
+    # Regesta: insert into latex string and then remove from soup object
+    for p in soup.floatingText.find_all("p"):
+        p = hi_rend(p).text
+    text_latex += "\n" + "\\begin{quote}" + "\n" + p + "\n" + "\end{quote}" + "\n"
+    soup.floatingText.extract()
+
+    # Letter text
+    text_latex += "\n" + "\\selectlanguage{latin}" + "\n" + "\\beginnumbering" + "\n" + "\\firstlinenum{5}" + "\n" + \
+                  "\linenumincrement{5}" + "\n"
+
+    for p in soup.body.div.find_all("p"):
+        p = hi_rend(p).text
+        text_latex += "\n" + "\psart" + "\n" + p + "\n" + "\pend" + "\n"
+
+        # Letter verso
+    for div in soup.find_all("div", attrs={"type": "verso"}):
+        verso_head = normalize_text(div.head.text)
+        text_latex += "\n" + "\psart" + "\n" + "\\textit{" + verso_head + "}" + "\n" + "\pend" + "\n"
+        for p in div.find_all("p"):
+            p = hi_rend(p)
+            text_latex += "\n" + "\psart" + "\n" + p.text + "\n" + "\pend" + "\n"
+
+    text_latex += "\n" + "\endnumbering" + "\n" + "\\selectlanguage{english}" + "\n"
+
+    return text_latex
+
+
+def main(xml, latex):
     with open(xml, "r", encoding="utf8") as f_xml:
         sp = BeautifulSoup(f_xml, "xml")
+
+        # Delete <ref> tags
+        for i in sp.find_all("ref"):
+            i.extract()
+
         with open(latex, "w", encoding="utf8") as f_latex:
 
-            # Insert LaTeX doc header
-            with open("begin.txt", "r", encoding="utf8") as f_begin:
-                begin = f_begin.read()
-                f_latex.write(begin)
+            # Transform header
+            h = header2latex(sp.teiHeader)
+            f_latex.write(h)
 
-            # Delete <ref> tags
-            for i in sp.find_all("ref"):
-                i.extract()
-
-            # Insert title
-            title = str(sp.TEI.teiHeader.fileDesc.titleStmt.title.text)
-            f_latex.write("\n" + "\section{" + title + "}" + "\n\n")
-
-            # Insert manuscript description
-            country = str(sp.country.text)
-            settlement = str(sp.settlement.text)
-            institution = str(sp.institution.text)
-            repository = str(sp.repository.text)
-            f_latex.write("\\begin{center}" + "\n" + "\\textit{Manuscript used}: " + country + ", " + settlement + ", "
-                          + institution + ", " + repository + "\n\n")
-
-            # Insert critintro (Notes, Photo copy)
-            critIntro = sp.notesStmt.find_all("note", attrs= {"type": "critIntro"})
-            for i in critIntro:
-                i = hi_rend(i).text
-                i = str(i).replace("\n", "")
-                f_latex.write(i + "\n\n")
-
-            # Insert publication
-            publication = sp.notesStmt.find("note", attrs={"type": "publication"})
-            publication = hi_rend(publication)
-            f_latex.write(str(publication.text) + "\n\n")
-
-            # Insert translation
-            translation = sp.notesStmt.find("note", attrs= {"type": "translation"})
-            translation = hi_rend(translation)
-            f_latex.write(str(translation.text) + "\n\n")
+            # Transform text
+            t = text2latex(sp.find("text"))
+            f_latex.write(t)
 
 
 if __name__ == '__main__':
@@ -78,6 +136,6 @@ if __name__ == '__main__':
     begin = time.time()
     for i in filelist_in:
         out = i.replace(dir_name_in, dir_name_out).replace(".xml", ".tex")
-        make_latex(i, out)
+        main(i, out)
     end = time.time()
     print(end - begin)
