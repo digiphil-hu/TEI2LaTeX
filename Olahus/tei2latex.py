@@ -28,6 +28,17 @@ def hi_rend(soup):
     soup = BeautifulSoup(soup, "xml")
     return(soup)
 
+def note_critic(para):
+    # Input: normalized soup object preprocessed by the funcion: hi_rend
+    para_str = str(para)
+    for note_cr_tag in para.find_all("note", attrs={"type": "critic"}):
+        note_text = note_cr_tag.text
+        note_cr_str = str(note_cr_tag)
+        note_cr_latex = "\\footnoteA{" + note_text + "}"
+        para_str = para_str.replace(note_cr_str, note_cr_latex)
+    para = BeautifulSoup(para_str, "xml")
+    return para
+
 
 def header2latex(soup):
     header_str = ""
@@ -77,7 +88,7 @@ def header2latex(soup):
 def text2latex(soup):
     text_latex = ""
 
-    # Regesta: insert into latex string and then remove from soup object
+    # Regesta: insert into latex string and then remove tag from soup object
     for p in soup.floatingText.find_all("p"):
         p = hi_rend(p).text
     text_latex += "\n" + "\\begin{quote}" + "\n" + p + "\n" + "\end{quote}" + "\n"
@@ -88,8 +99,9 @@ def text2latex(soup):
                   "\linenumincrement{5}" + "\n"
 
     for p in soup.body.div.find_all("p"):
-        p = hi_rend(p).text
-        text_latex += "\n" + "\psart" + "\n" + p + "\n" + "\pend" + "\n"
+        p = hi_rend(p)
+        p = note_critic(p)
+        text_latex += "\n" + "\psart" + "\n" + p.text + "\n" + "\pend" + "\n"
 
         # Letter verso
     for div in soup.find_all("div", attrs={"type": "verso"}):
@@ -97,6 +109,7 @@ def text2latex(soup):
         text_latex += "\n" + "\psart" + "\n" + "\\textit{" + verso_head + "}" + "\n" + "\pend" + "\n"
         for p in div.find_all("p"):
             p = hi_rend(p)
+            p = note_critic(p)
             text_latex += "\n" + "\psart" + "\n" + p.text + "\n" + "\pend" + "\n"
 
     text_latex += "\n" + "\endnumbering" + "\n" + "\\selectlanguage{english}" + "\n"
