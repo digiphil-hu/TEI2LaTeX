@@ -28,6 +28,7 @@ def hi_rend(soup):
     soup = BeautifulSoup(soup, "xml")
     return(soup)
 
+
 def note_critic(para):
     # Input: normalized soup object preprocessed by the funcion: hi_rend
     para_str = str(para)
@@ -37,6 +38,28 @@ def note_critic(para):
         note_cr_latex = "\\footnoteA{" + note_text + "}"
         para_str = para_str.replace(note_cr_str, note_cr_latex)
     para = BeautifulSoup(para_str, "xml")
+    return para
+
+
+def del_add(para):
+    for d in para.find_all("del"):
+        # <del><add>
+        if str(d.next_sibling).startswith("<add"):
+            d_cor = d["corresp"]
+            d_text = d.text
+            a_cor = d.next_sibling["corresp"]
+            a_text = d.next_sibling.text
+            prev_list = d.previous_element.text.split(" ")
+            if len(prev_list) > 2:
+                prev_w = prev_list[-2]
+            else:
+                prev_w = "Unkonwn"
+            d_new = "\edtext{" + prev_w + "}{\lemma{" + prev_w + "}\Afootnote{\\textit{" + d_cor + " del. ex }" \
+                    + prev_w + " " + d_text + "}}\edtext{" + a_text + "}{\lemma{" + a_text + "}\Afootnote{\\textit{" \
+                    + a_cor + " add.}}}"
+            d.next_sibling.extract()
+            d.string = d_new
+            d.unwrap()
     return para
 
 
@@ -76,12 +99,11 @@ def header2latex(soup):
         header_str += str(publication.text) + "\n"
 
     # Insert translation
-    for translation in soup.notesStmt.find("note", attrs={"type": "translation"}):
+    for translation in soup.notesStmt.find_all("note", attrs={"type": "translation"}):
         translation = hi_rend(translation)
         header_str += str(translation.text) + "\n"
 
     header_str += "\n" + "\end{center}" + "\n"
-
     return header_str
 
 
@@ -101,19 +123,19 @@ def text2latex(soup):
     for p in soup.body.div.find_all("p"):
         p = hi_rend(p)
         p = note_critic(p)
-        text_latex += "\n" + "\psart" + "\n" + p.text + "\n" + "\pend" + "\n"
+        p = del_add(p)
+        text_latex += "\n" + "\pstart" + "\n" + p.text + "\n" + "\pend" + "\n"
 
         # Letter verso
     for div in soup.find_all("div", attrs={"type": "verso"}):
         verso_head = normalize_text(div.head.text)
-        text_latex += "\n" + "\psart" + "\n" + "\\textit{" + verso_head + "}" + "\n" + "\pend" + "\n"
+        text_latex += "\n" + "\pstart" + "\n" + "\\textit{" + verso_head + "}" + "\n" + "\pend" + "\n"
         for p in div.find_all("p"):
             p = hi_rend(p)
             p = note_critic(p)
-            text_latex += "\n" + "\psart" + "\n" + p.text + "\n" + "\pend" + "\n"
+            text_latex += "\n" + "\pstart" + "\n" + p.text + "\n" + "\pend" + "\n"
 
     text_latex += "\n" + "\endnumbering" + "\n" + "\\selectlanguage{english}" + "\n"
-
     return text_latex
 
 
@@ -121,8 +143,12 @@ def main(xml, latex):
     with open(xml, "r", encoding="utf8") as f_xml:
         sp = BeautifulSoup(f_xml, "xml")
 
-        # Delete <ref> tags
+        # Delete <ref> tags, <placeName>, <persName>
         for i in sp.find_all("ref"):
+            i.extract()
+        for i in sp.find_all("placeName"):
+            i.extract()
+        for i in sp.find_all("persName"):
             i.extract()
 
         with open(latex, "w", encoding="utf8") as f_latex:
