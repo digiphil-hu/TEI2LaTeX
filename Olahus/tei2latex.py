@@ -8,6 +8,14 @@ import os
 from bs4 import BeautifulSoup
 import re
 
+def previous_word(tag):
+    prev_list = tag.previous_element.text.split(" ")
+    if len(prev_list) > 2:
+        prev_w = prev_list[-2]
+    else:
+        prev_w = "Unkonwn"
+    return prev_w
+
 
 def normalize_text(string):
     # Input and output: STRING!!!!
@@ -49,6 +57,28 @@ def del_add(para):
             d_text = d.text
             a_cor = d.next_sibling["corresp"]
             a_text = d.next_sibling.text
+            if d_cor == a_cor:
+                d_new = "\edtext{"+ a_text +"}{\lemma{" + a_text + "}\Afootnote{\\textit{" + a_cor + " corr. ex} " + d_text + "}}"
+            else:
+                lemma = previous_word(d)
+                d_new = "\edtext{" + "}{\lemma{" + lemma + "}\Afootnote{\\textit{" + d_cor + " del. ex }" \
+                        + lemma + " " + d_text + "}}\edtext{" + a_text + "}{\lemma{" + a_text + "}\Afootnote{\\textit{" \
+                        + a_cor + " add.}}}"
+            print(d_new)
+            d.next_sibling.extract()
+            d.string = d_new
+            d.unwrap()
+        else:
+            d_cor = d["corresp"]
+            d_text = d.text
+            lemma = previous_word(d)
+            d_new = "\edtext{" + "}{\lemma{" + lemma + "}\Afootnote{\\textit{" + d_cor + " del. ex }" \
+                        + lemma + " " + d_text + "}}"
+            print(d_new)
+            d.string = d_new
+            d.unwrap()
+    return para
+"""
             prev_list = d.previous_element.text.split(" ")
             if len(prev_list) > 2:
                 prev_w = prev_list[-2]
@@ -57,12 +87,7 @@ def del_add(para):
             d_new = "\edtext{" + prev_w + "}{\lemma{" + prev_w + "}\Afootnote{\\textit{" + d_cor + " del. ex }" \
                     + prev_w + " " + d_text + "}}\edtext{" + a_text + "}{\lemma{" + a_text + "}\Afootnote{\\textit{" \
                     + a_cor + " add.}}}"
-            d.next_sibling.extract()
-            d.string = d_new
-            d.unwrap()
-    return para
-
-
+"""
 def header2latex(soup):
     header_str = ""
 
@@ -136,6 +161,8 @@ def text2latex(soup):
             text_latex += "\n" + "\pstart" + "\n" + p.text + "\n" + "\pend" + "\n"
 
     text_latex += "\n" + "\endnumbering" + "\n" + "\\selectlanguage{english}" + "\n"
+    text_latex += "\n" + "\pagebreak" + "\n"
+    text_latex += "\n" + "\end{document}" + "\n"
     return text_latex
 
 
