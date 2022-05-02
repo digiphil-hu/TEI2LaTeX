@@ -67,7 +67,6 @@ def del_add(para):
                 d_new = "\edtext{" + "}{\lemma{" + lemma + "}\Afootnote{\\textit{" + d_cor + " del. ex }" \
                         + lemma + " " + d_text + "}}\edtext{" + a_text + "}{\lemma{" + a_text + "}\Afootnote{\\textit{" \
                         + a_cor + " add.}}}"
-            print(d_new)
             d.next_sibling.extract()
             d.string = d_new
             d.unwrap()
@@ -77,9 +76,15 @@ def del_add(para):
             lemma = previous_word(d)
             d_new = "\edtext{" + "}{\lemma{" + lemma + "}\Afootnote{\\textit{" + d_cor + " del. ex }" \
                         + lemma + " " + d_text + "}}"
-            print(d_new)
             d.string = d_new
             d.unwrap()
+    for a in para.find_all("add"):
+        a_text = a.text
+        a_cor = a["corresp"]
+        a_new = "\edtext{" + a_text + "}{\lemma{" + a_text + "}\Afootnote{\\textit{" + a_cor + " add.}}}"
+        a.string = a_new
+        print(a_new)
+        a.unwrap()
     return para
 
 
