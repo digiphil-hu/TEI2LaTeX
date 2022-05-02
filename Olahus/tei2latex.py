@@ -8,6 +8,7 @@ import os
 from bs4 import BeautifulSoup
 import re
 
+
 def previous_word(tag):
     prev_list = tag.previous_element.text.split(" ")
     if len(prev_list) > 2:
@@ -38,7 +39,7 @@ def hi_rend(soup):
 
 
 def note_critic(para):
-    # Input: normalized soup object preprocessed by the funcion: hi_rend
+    # Input: normalized soup object preprocessed by the function: hi_rend()
     para_str = str(para)
     for note_cr_tag in para.find_all("note", attrs={"type": "critic"}):
         note_text = note_cr_tag.text
@@ -50,6 +51,8 @@ def note_critic(para):
 
 
 def del_add(para):
+    # Input: <p> after hi_rend() including normalization.
+    # TODO: <add>
     for d in para.find_all("del"):
         # <del><add>
         if str(d.next_sibling).startswith("<add"):
@@ -78,16 +81,8 @@ def del_add(para):
             d.string = d_new
             d.unwrap()
     return para
-"""
-            prev_list = d.previous_element.text.split(" ")
-            if len(prev_list) > 2:
-                prev_w = prev_list[-2]
-            else:
-                prev_w = "Unkonwn"
-            d_new = "\edtext{" + prev_w + "}{\lemma{" + prev_w + "}\Afootnote{\\textit{" + d_cor + " del. ex }" \
-                    + prev_w + " " + d_text + "}}\edtext{" + a_text + "}{\lemma{" + a_text + "}\Afootnote{\\textit{" \
-                    + a_cor + " add.}}}"
-"""
+
+
 def header2latex(soup):
     header_str = ""
 
@@ -135,7 +130,7 @@ def header2latex(soup):
 def text2latex(soup):
     text_latex = ""
 
-    # Regesta: insert into latex string and then remove tag from soup object
+    # Regesta: insert <floatingText> into latex string and then remove tag from soup object
     for p in soup.floatingText.find_all("p"):
         p = hi_rend(p).text
     text_latex += "\n" + "\\begin{quote}" + "\n" + p + "\n" + "\end{quote}" + "\n"
@@ -158,6 +153,7 @@ def text2latex(soup):
         for p in div.find_all("p"):
             p = hi_rend(p)
             p = note_critic(p)
+            p = del_add(p)
             text_latex += "\n" + "\pstart" + "\n" + p.text + "\n" + "\pend" + "\n"
 
     text_latex += "\n" + "\endnumbering" + "\n" + "\\selectlanguage{english}" + "\n"
@@ -180,11 +176,11 @@ def main(xml, latex):
 
         with open(latex, "w", encoding="utf8") as f_latex:
 
-            # Transform header
+            # Write header
             h = header2latex(sp.teiHeader)
             f_latex.write(h)
 
-            # Transform text
+            # Write text
             t = text2latex(sp.find("text"))
             f_latex.write(t)
 
