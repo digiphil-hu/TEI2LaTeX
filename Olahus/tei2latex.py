@@ -78,12 +78,12 @@ def del_add(para):
                         + lemma + " " + d_text + "}}"
             d.string = d_new
             d.unwrap()
+    # <add>
     for a in para.find_all("add"):
         a_text = a.text
         a_cor = a["corresp"]
         a_new = "\edtext{" + a_text + "}{\lemma{" + a_text + "}\Afootnote{\\textit{" + a_cor + " add.}}}"
         a.string = a_new
-        print(a_new)
         a.unwrap()
     return para
 
