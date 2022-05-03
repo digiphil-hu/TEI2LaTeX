@@ -52,7 +52,6 @@ def note_critic(para):
 
 def del_add(para):
     # Input: <p> after hi_rend() including normalization.
-    # TODO: <add>
     for d in para.find_all("del"):
         # <del><add>
         if str(d.next_sibling).startswith("<add"):
@@ -61,12 +60,13 @@ def del_add(para):
             a_cor = d.next_sibling["corresp"]
             a_text = d.next_sibling.text
             if d_cor == a_cor:
-                d_new = "\edtext{"+ a_text +"}{\lemma{" + a_text + "}\Afootnote{\\textit{" + a_cor + " corr. ex} " + d_text + "}}"
+                d_new = "\edtext{"+ a_text +"}{\lemma{" + a_text + "}\Afootnote{\\textit{" + a_cor + " corr. ex} " \
+                        + d_text + "}}"
             else:
                 lemma = previous_word(d)
                 d_new = "\edtext{" + "}{\lemma{" + lemma + "}\Afootnote{\\textit{" + d_cor + " del. ex }" \
-                        + lemma + " " + d_text + "}}\edtext{" + a_text + "}{\lemma{" + a_text + "}\Afootnote{\\textit{" \
-                        + a_cor + " add.}}}"
+                        + lemma + " " + d_text + "}}\edtext{" + a_text + "}{\lemma{" + a_text \
+                        + "}\Afootnote{\\textit{" + a_cor + " add.}}}"
             d.next_sibling.extract()
             d.string = d_new
             d.unwrap()
@@ -85,6 +85,16 @@ def del_add(para):
         a_new = "\edtext{" + a_text + "}{\lemma{" + a_text + "}\Afootnote{\\textit{" + a_cor + " add.}}}"
         a.string = a_new
         a.unwrap()
+    # <choice> <supplied>
+    # TODO: choice + gap!
+    for ch in para.find_all("choice"):
+        ch_text = ch.text
+        sup_text = ch.supplied.text
+        ch_new = "\edtext{" + sup_text + "}{\lemma{" + sup_text + "}\Afootnote{\\textit{corr. ex} " + ch_text + "}}"
+        ch.supplied.extract()
+        ch.string = ch_new
+        ch.unwrap()
+        print(ch_new)
     return para
 
 
