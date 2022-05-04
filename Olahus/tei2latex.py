@@ -34,13 +34,14 @@ def hi_rend(soup):
 
     # Names
     for name in soup.find_all("persName"):
-        name.string = "\index[pers]{" + name.text + "}"
+        name.string = "\index[pers]{" + name.text + "}" + name.text
         name.unwrap()
     for place in soup.find_all("placeName"):
-        place.string = "\index[pers]{" + place.text + "}"
+        place.string = "\index[pers]{" + place.text + "}" + place.text
         place.unwrap()
 
-    # hi rend. As italic and smallcap may be under bold, two cycles are needed
+    # hi rend. As italic and small-cap may be under bold, two cycles are needed.
+    # Bold under small-cap or italic is not supported!
     for hi in soup.find_all("hi"):
         if len(hi.find_all("hi")) == 0:
             hi_text = hi.text
@@ -51,6 +52,7 @@ def hi_rend(soup):
                 hi.string = "\\textsc{" + hi_text + "}"
                 hi.unwrap()
     for hi in soup.find_all("hi"):
+        hi_text = hi.text
         if len(hi.find_all("hi")) == 0:
             if hi["rend"] == "bold":
                 hi.string = "\\textbf{" + hi_text + "}"
@@ -138,8 +140,7 @@ def del_add(para):
 def header2latex(soup):
     header_str = ""
 
-
-    # Insert LaTeX doc header
+#    Insert LaTeX doc header
 #    with open("begin.txt", "r", encoding="utf8") as f_begin:
 #        begin = f_begin.read()
 #        header_str += begin
@@ -220,7 +221,7 @@ def main(xml, latex):
     with open(xml, "r", encoding="utf8") as f_xml:
         sp = BeautifulSoup(f_xml, "xml")
 
-        # Delete <ref> tags, <placeName>, <persName>
+        # Delete <ref> tags
         for i in sp.find_all("ref"):
             i.extract()
 
@@ -232,7 +233,7 @@ def main(xml, latex):
                 if d_cor != a_cor:
                     print("File name: " + xml + "Del corresp: " + d_cor + "Add corrsp: " + a_cor)
 
-        with open("latex.tex", "a", encoding="utf8") as f_latex:
+        with open("latex2.tex", "a", encoding="utf8") as f_latex:
 
             # Write header
             h = header2latex(sp.teiHeader)
@@ -244,7 +245,11 @@ def main(xml, latex):
 
 
 if __name__ == '__main__':
-    dir_name_in = "/home/elte-dh-celestra/PycharmProjects/TEI2LaTeX/Olahus/XML"
+    with open("latex2.tex", "w", encoding="utf8") as f_w:
+        with open("begin.txt", "r", encoding="utf8") as f_r:
+            begin = f_r.read()
+            f_w.write(begin)
+    dir_name_in = "/home/elte-dh-celestra/PycharmProjects/TEI2LaTeX/Olahus/XML2"
     dir_name_out = "/home/elte-dh-celestra/PycharmProjects/TEI2LaTeX/Olahus/LaTeX"
     filelist_in = []
     for dirpath, subdirs, files in os.walk(dir_name_in):

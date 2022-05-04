@@ -3,7 +3,11 @@
 \usepackage{fontspec}
 \usepackage{xunicode}
 \usepackage{xltxtra}
+\defaultfontfeatures{Scale=MatchLowercase}
+\setmainfont[Mapping=tex-text]{Linux Libertine O}
 \usepackage[latin,english]{babel}
+\usepackage{imakeidx}
+\usepackage{realscripts}
 
 \usepackage[bookmarks=true,
     bookmarksnumbered=false,
@@ -17,5 +21,13 @@
 
 \usepackage[parapparatus, series={A}]{reledmac}
 \fnpos{critical-familiar}
+\makeatletter
+\renewcommand*{\bodyfootmarkA}{%
+\hbox{\textsuperscript{\@nameuse{@thefnmarkA}}}}
+\makeatother
+
+\makeindex[name=pers,title=Index nominorum]
+\makeindex[name=place,title=Index locorum]
 
 \begin{document}
+
