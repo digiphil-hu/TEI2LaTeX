@@ -19,22 +19,53 @@ def previous_word(tag):
 
 
 def normalize_text(string):
-    # Input and output: STRING!!!!
+    # Input and output: STRING!!!! [ and ] => {}
     string = re.sub("[\n\t\s]+", " ", string)
+    string = re.sub('\s+', " ", string)
+    string = re.sub("\[", "{[}", string)
+    string = re.sub("\]", "{]}", string)
     return string
 
 
 def hi_rend(soup):
     # Input and output: soup object
     soup = normalize_text(str(soup))
-    soup = re.sub('\s+', " ", soup)
+    soup = BeautifulSoup(soup, "xml")
+
+    # Names
+    for name in soup.find_all("persName"):
+        name.string = "\index[pers]{" + name.text + "}"
+        name.unwrap()
+    for place in soup.find_all("placeName"):
+        place.string = "\index[pers]{" + place.text + "}"
+        place.unwrap()
+
+    # hi rend. As italic and smallcap may be under bold, two cycles are needed
+    for hi in soup.find_all("hi"):
+        if len(hi.find_all("hi")) == 0:
+            hi_text = hi.text
+            if hi["rend"] == "italic":
+                hi.string = "\\textit{" + hi_text + "}"
+                hi.unwrap()
+            if hi["rend"] == "smallcap":
+                hi.string = "\\textsc{" + hi_text + "}"
+                hi.unwrap()
+    for hi in soup.find_all("hi"):
+        if len(hi.find_all("hi")) == 0:
+            if hi["rend"] == "bold":
+                hi.string = "\\textbf{" + hi_text + "}"
+                hi.unwrap()
+        else:
+            print(hi)
+
+    """
     soup = re.sub('<hi +rend *= *"italic" *>(.*?)(:?)(?:</hi>)',
                   '\\\\textit{\\1}\\2', soup)
     soup = re.sub('<hi +rend *= *"smallcap" *>(.*?)(:?)(?:</hi>)',
                   '\\\\textsc{\\1}\\2', soup)
     soup = re.sub('<hi +rend *= *"bold" *>(.*?)(:?)(?:</hi>)',
                   '\\\\textbf{\\1}\\2', soup)
-    soup = BeautifulSoup(soup, "xml")
+    """
     return(soup)
 
 
@@ -63,10 +94,11 @@ def del_add(para):
                 d_new = "\edtext{"+ a_text +"}{\lemma{" + a_text + "}\Afootnote{\\textit{" + a_cor + " corr. ex} " \
                         + d_text + "}}"
             else:
-                lemma = previous_word(d)
-                d_new = "\edtext{" + "}{\lemma{" + lemma + "}\Afootnote{\\textit{" + d_cor + " del. ex }" \
-                        + lemma + " " + d_text + "}}\edtext{" + a_text + "}{\lemma{" + a_text \
-                        + "}\Afootnote{\\textit{" + a_cor + " add.}}}"
+                continue
+#                lemma = previous_word(d)
+#                d_new = "\edtext{" + "}{\lemma{" + lemma + "}\Afootnote{\\textit{" + d_cor + " del. ex }" \
+#                        + lemma + " " + d_text + "}}\edtext{" + a_text + "}{\lemma{" + a_text \
+#                        + "}\Afootnote{\\textit{" + a_cor + " add.}}}"
             d.next_sibling.extract()
             d.string = d_new
             d.unwrap()
@@ -77,14 +109,19 @@ def del_add(para):
             d_new = "\edtext{" + "}{\lemma{" + lemma + "}\Afootnote{\\textit{" + d_cor + " del. ex }" \
                         + lemma + " " + d_text + "}}"
             d.string = d_new
+#            print(d_new)
             d.unwrap()
-    # <add>
-    for a in para.find_all("add"):
-        a_text = a.text
-        a_cor = a["corresp"]
-        a_new = "\edtext{" + a_text + "}{\lemma{" + a_text + "}\Afootnote{\\textit{" + a_cor + " add.}}}"
-        a.string = a_new
-        a.unwrap()
+    # <add> type=insert
+    for a in para.find_all("add", attrs={"type": "insert"}):
+        if len(a.find_all("add")) == 0:
+            a_text = a.text
+            a_cor = a["corresp"]
+            a_new = "\edtext{" + a_text + "}{\lemma{" + a_text + "}\Afootnote{\\textit{" + a_cor + " add.}}}"
+            a.string = a_new
+            a.unwrap()
+        else:
+            print("Add alatt add")
+
     # <choice> <supplied>
     # TODO: choice + gap!
     for ch in para.find_all("choice"):
@@ -93,18 +130,19 @@ def del_add(para):
         ch_new = "\edtext{" + sup_text + "}{\lemma{" + sup_text + "}\Afootnote{\\textit{corr. ex} " + ch_text + "}}"
         ch.supplied.extract()
         ch.string = ch_new
+#        print(ch_new)
         ch.unwrap()
-        print(ch_new)
     return para
 
 
 def header2latex(soup):
     header_str = ""
 
+
     # Insert LaTeX doc header
-    with open("begin.txt", "r", encoding="utf8") as f_begin:
-        begin = f_begin.read()
-        header_str += begin
+#    with open("begin.txt", "r", encoding="utf8") as f_begin:
+#        begin = f_begin.read()
+#        header_str += begin
 
     header_str += "\n" + "\\begin{center}" + "\n"
 
@@ -163,8 +201,8 @@ def text2latex(soup):
 
         # Letter verso
     for div in soup.find_all("div", attrs={"type": "verso"}):
-        verso_head = normalize_text(div.head.text)
-        text_latex += "\n" + "\pstart" + "\n" + "\\textit{" + verso_head + "}" + "\n" + "\pend" + "\n"
+        verso_head = hi_rend(div.head)
+        text_latex += "\n" + "\pstart" + "\n" + "\\textit{" + verso_head.text + "}" + "\n" + "\pend" + "\n"
         for p in div.find_all("p"):
             p = hi_rend(p)
             p = note_critic(p)
@@ -173,23 +211,28 @@ def text2latex(soup):
 
     text_latex += "\n" + "\endnumbering" + "\n" + "\\selectlanguage{english}" + "\n"
     text_latex += "\n" + "\pagebreak" + "\n"
-    text_latex += "\n" + "\end{document}" + "\n"
+#    text_latex += "\n" + "\end{document}" + "\n"
     return text_latex
 
 
 def main(xml, latex):
+    print(xml)
     with open(xml, "r", encoding="utf8") as f_xml:
         sp = BeautifulSoup(f_xml, "xml")
 
         # Delete <ref> tags, <placeName>, <persName>
         for i in sp.find_all("ref"):
             i.extract()
-        for i in sp.find_all("placeName"):
-            i.extract()
-        for i in sp.find_all("persName"):
-            i.extract()
 
-        with open(latex, "w", encoding="utf8") as f_latex:
+        # Error check
+        for d in sp.find_all("del"):
+            if str(d.next_sibling).startswith("<add"):
+                d_cor = d["corresp"]
+                a_cor = d.next_sibling["corresp"]
+                if d_cor != a_cor:
+                    print("File name: " + xml + "Del corresp: " + d_cor + "Add corrsp: " + a_cor)
+
+        with open("latex.tex", "a", encoding="utf8") as f_latex:
 
             # Write header
             h = header2latex(sp.teiHeader)
