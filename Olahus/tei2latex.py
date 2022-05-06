@@ -83,7 +83,7 @@ def note_critic(para):
     return para
 
 
-def del_add(para):
+def paragraph(para):
     # Input: <p> after hi_rend() including normalization.
     for d in para.find_all("del"):
         # <del><add>
@@ -113,6 +113,7 @@ def del_add(para):
             d.string = d_new
 #            print(d_new)
             d.unwrap()
+
     # <add> type=insert
     for a in para.find_all("add", attrs={"type": "insert"}):
         if len(a.find_all("add")) == 0:
@@ -123,6 +124,26 @@ def del_add(para):
             a.unwrap()
         else:
             print("Add alatt add")
+
+    # Quote
+    for q in para.find_all("quote"):
+        q_text = q.text
+        q_list = q_text.split(" ")
+        n = q.next_sibling
+        if len(q_list) > 1:
+            firstword = q_list[0]
+            lastword = (q_list)[-1]
+            q_keyword = firstword + "\ldots{} " + lastword
+        if len(q_list) == 1:
+            q_keyword = q.text
+        if n["type"] == "quote":
+            q_new = "\edtext{" + q_text + "}{\lemma{" + q_keyword + "}\Afootnote{" + n.text + "}}"
+            q.string = q_new
+            print(q_new)
+            n.extract()
+            q.unwrap()
+        else:
+            print("Note type quote error!")
 
     # <choice> <supplied>
     # TODO: choice + gap!
@@ -197,7 +218,7 @@ def text2latex(soup):
     for p in soup.body.div.find_all("p"):
         p = hi_rend(p)
         p = note_critic(p)
-        p = del_add(p)
+        p = paragraph(p)
         text_latex += "\n" + "\pstart" + "\n" + p.text + "\n" + "\pend" + "\n"
 
         # Letter verso
@@ -207,7 +228,7 @@ def text2latex(soup):
         for p in div.find_all("p"):
             p = hi_rend(p)
             p = note_critic(p)
-            p = del_add(p)
+            p = paragraph(p)
             text_latex += "\n" + "\pstart" + "\n" + p.text + "\n" + "\pend" + "\n"
 
     text_latex += "\n" + "\endnumbering" + "\n" + "\\selectlanguage{english}" + "\n"
