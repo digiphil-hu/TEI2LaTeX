@@ -82,6 +82,22 @@ def note_critic(para):
     para = BeautifulSoup(para_str, "xml")
     return para
 
+def quote(quote, note):
+    # <quote><note type="quote">
+    # Milestone p missing!
+    q_text = quote.text
+    q_list = q_text.split(" ")
+    if len(q_list) > 2:
+        firstword = q_list[0]
+        lastword = (q_list)[-1]
+        q_keyword = firstword + "\ldots{} " + lastword
+    if len(q_list) <= 2:
+        q_keyword = quote.text
+    n_new = "\edtext{" + "}{\lemma{" + q_keyword + "}\Afootnote{" + note.text + "}}"
+    quote.string = quote.text + n_new
+    quote.unwrap()
+    note.extract()
+    return quote
 
 def paragraph(para):
     # Input: <p> after hi_rend() including normalization.
@@ -125,26 +141,6 @@ def paragraph(para):
         else:
             print("Add alatt add")
 
-    # Quote
-    for q in para.find_all("quote"):
-        q_text = q.text
-        q_list = q_text.split(" ")
-        n = q.next_sibling
-        if len(q_list) > 1:
-            firstword = q_list[0]
-            lastword = (q_list)[-1]
-            q_keyword = firstword + "\ldots{} " + lastword
-        if len(q_list) == 1:
-            q_keyword = q.text
-        if n["type"] == "quote":
-            q_new = "\edtext{" + q_text + "}{\lemma{" + q_keyword + "}\Afootnote{" + n.text + "}}"
-            q.string = q_new
-            print(q_new)
-            n.extract()
-            q.unwrap()
-        else:
-            print("Note type quote error!")
-
     # <choice> <supplied>
     # TODO: choice + gap!
     for ch in para.find_all("choice"):
@@ -153,7 +149,6 @@ def paragraph(para):
         ch_new = "\edtext{" + sup_text + "}{\lemma{" + sup_text + "}\Afootnote{\\textit{corr. ex} " + ch_text + "}}"
         ch.supplied.extract()
         ch.string = ch_new
-#        print(ch_new)
         ch.unwrap()
     return para
 
@@ -219,9 +214,14 @@ def text2latex(soup):
         p = hi_rend(p)
         p = note_critic(p)
         p = paragraph(p)
+        for q in p.find_all("quote"):
+            n = q.next_sibling
+            q = quote(q, n)
+
         text_latex += "\n" + "\pstart" + "\n" + p.text + "\n" + "\pend" + "\n"
 
         # Letter verso
+        # Quote!
     for div in soup.find_all("div", attrs={"type": "verso"}):
         verso_head = hi_rend(div.head)
         text_latex += "\n" + "\pstart" + "\n" + "\\textit{" + verso_head.text + "}" + "\n" + "\pend" + "\n"
@@ -230,6 +230,7 @@ def text2latex(soup):
             p = note_critic(p)
             p = paragraph(p)
             text_latex += "\n" + "\pstart" + "\n" + p.text + "\n" + "\pend" + "\n"
+
 
     text_latex += "\n" + "\endnumbering" + "\n" + "\\selectlanguage{english}" + "\n"
     text_latex += "\n" + "\pagebreak" + "\n"
