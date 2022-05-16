@@ -152,7 +152,7 @@ def paragraph(para):
             ch.string = cor_sup + "<" + cor_cor + ">"
             ch.unwrap()
         elif ch.supplied.corr is not None and ch.supplied.corr.string is None:
-            ch.string = "\ldots{} "
+            ch.string = "<\ldots{}> "
             ch.unwrap()
         else:
             ch_text = ch.text
@@ -283,6 +283,7 @@ if __name__ == '__main__':
                 continue
             elif x.endswith(".xml"):
                 filelist_in.append(os.path.join(dirpath, x))
+    filelist_in.sort()
     begin = time.time()
     for i in filelist_in:
         out = i.replace(dir_name_in, dir_name_out).replace(".xml", ".tex")

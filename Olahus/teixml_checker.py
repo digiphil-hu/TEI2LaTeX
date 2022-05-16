@@ -49,8 +49,6 @@ def main(xml):
             if parent.name != "choice":
                 print(parent.name, xml)
 
-        #gap
-
         # p in p
         for p_p in sp.p.find_all("p"):
             print("<p> alatt <p>: ", xml)
@@ -60,7 +58,7 @@ def main(xml):
             for q_sub in sp.quote.findChildren(re.compile("[a-zA-Z]+")):
                 if q_sub.name == "p":
                     print("Quote alatt: " , xml)
-
+"""
         # Quote print
         xml_short = xml.split("/")[-1]
         with open("quote.txt", "a", encoding="utf8") as f_doc:
@@ -77,7 +75,7 @@ def main(xml):
                     f_doc.write("Filename: " + xml_short + "\n" + "Quote: " + quote + "\n" + "Note: " + note + "\n\n")
                 else:
                     f_doc.write("Filename: " + xml_short + "\n" + "Quote: " + quote + "\n" + "Note missing!" + "\n\n")
-
+"""
 
 
 if __name__ == '__main__':
