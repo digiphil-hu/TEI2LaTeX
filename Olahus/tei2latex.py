@@ -146,8 +146,9 @@ def paragraph(para):
     # <choice> <supplied>
     for ch in para.find_all("choice"):
         if ch.supplied.corr is not None and ch.supplied.corr.string is not None:
-            cor_sup = ch.supplied.text
             cor_cor = ch.supplied.corr.text
+            ch.supplied.corr.extract()
+            cor_sup = ch.supplied.text
             ch.string = cor_sup + "<" + cor_cor + ">"
             ch.unwrap()
         elif ch.supplied.corr is not None and ch.supplied.corr.string is None:
@@ -227,11 +228,9 @@ def text2latex(soup):
         for q in p.find_all("quote"):
             n = q.next_sibling
             q = quote(q, n)
-
         text_latex += "\n" + "\pstart" + "\n" + p.text + "\n" + "\pend" + "\n"
 
         # Letter verso
-        # Quote!
     for div in soup.find_all("div", attrs={"type": "verso"}):
         verso_head = hi_rend(div.head)
         text_latex += "\n" + "\pstart" + "\n" + "\\textit{" + verso_head.text + "}" + "\n" + "\pend" + "\n"
@@ -239,8 +238,10 @@ def text2latex(soup):
             p = hi_rend(p)
             p = note_critic(p)
             p = paragraph(p)
+            for q in p.find_all("quote"):
+                n = q.next_sibling
+                q = quote(q, n)
             text_latex += "\n" + "\pstart" + "\n" + p.text + "\n" + "\pend" + "\n"
-
 
     text_latex += "\n" + "\endnumbering" + "\n" + "\\selectlanguage{english}" + "\n"
     text_latex += "\n" + "\pagebreak" + "\n"

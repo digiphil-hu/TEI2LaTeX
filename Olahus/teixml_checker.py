@@ -50,9 +50,6 @@ def main(xml):
                 print(parent.name, xml)
 
         #gap
-        for ch in sp.find_all("choice"):
-            if ch.supplied.corr is not None and ch.supplied.corr.string is not None:
-                print(ch.supplied.corr.text)
 
         # p in p
         for p_p in sp.p.find_all("p"):
@@ -84,7 +81,7 @@ def main(xml):
 
 
 if __name__ == '__main__':
-    dir_name_in = "/home/elte-dh-celestra/PycharmProjects/TEI2LaTeX/Olahus/XML"
+    dir_name_in = "/home/elte-dh-celestra/PycharmProjects/TEI2LaTeX/Olahus/XML2"
     filelist_in = []
     for dirpath, subdirs, files in os.walk(dir_name_in):
         for x in files:
