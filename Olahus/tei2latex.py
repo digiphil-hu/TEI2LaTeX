@@ -82,6 +82,7 @@ def note_critic(para):
     para = BeautifulSoup(para_str, "xml")
     return para
 
+
 def quote(quote, note):
     # <quote><note type="quote">
     # Milestone p missing!
@@ -98,6 +99,7 @@ def quote(quote, note):
     quote.unwrap()
     note.extract()
     return quote
+
 
 def paragraph(para):
     # Input: <p> after hi_rend() including normalization.
@@ -142,14 +144,22 @@ def paragraph(para):
             print("Add alatt add")
 
     # <choice> <supplied>
-    # TODO: choice + gap!
     for ch in para.find_all("choice"):
-        ch_text = ch.text
-        sup_text = ch.supplied.text
-        ch_new = "\edtext{" + sup_text + "}{\lemma{" + sup_text + "}\Afootnote{\\textit{corr. ex} " + ch_text + "}}"
-        ch.supplied.extract()
-        ch.string = ch_new
-        ch.unwrap()
+        if ch.supplied.corr is not None and ch.supplied.corr.string is not None:
+            cor_sup = ch.supplied.text
+            cor_cor = ch.supplied.corr.text
+            ch.string = cor_sup + "<" + cor_cor + ">"
+            ch.unwrap()
+        elif ch.supplied.corr is not None and ch.supplied.corr.string is None:
+            ch.string = "\ldots{} "
+            ch.unwrap()
+        else:
+            ch_text = ch.text
+            sup_text = ch.supplied.text
+            ch_new = "\edtext{" + sup_text + "}{\lemma{" + sup_text + "}\Afootnote{\\textit{corr. ex} " + ch_text + "}}"
+            ch.supplied.extract()
+            ch.string = ch_new
+            ch.unwrap()
     return para
 
 
@@ -247,14 +257,6 @@ def main(xml, latex):
         for i in sp.find_all("ref"):
             i.extract()
 
-        # Error check
-        for d in sp.find_all("del"):
-            if str(d.next_sibling).startswith("<add"):
-                d_cor = d["corresp"]
-                a_cor = d.next_sibling["corresp"]
-                if d_cor != a_cor:
-                    print("File name: " + xml + "Del corresp: " + d_cor + "Add corrsp: " + a_cor)
-
         with open("latex2.tex", "a", encoding="utf8") as f_latex:
 
             # Write header
@@ -269,8 +271,8 @@ def main(xml, latex):
 if __name__ == '__main__':
     with open("latex2.tex", "w", encoding="utf8") as f_w:
         with open("begin.txt", "r", encoding="utf8") as f_r:
-            begin = f_r.read()
-            f_w.write(begin)
+            start = f_r.read()
+            f_w.write(start)
     dir_name_in = "/home/elte-dh-celestra/PycharmProjects/TEI2LaTeX/Olahus/XML2"
     dir_name_out = "/home/elte-dh-celestra/PycharmProjects/TEI2LaTeX/Olahus/LaTeX"
     filelist_in = []

@@ -32,14 +32,54 @@ def main(xml):
                 if d_cor != a_cor:
                     print("File name: " + xml + "Del corresp: " + d_cor + "Add corrsp: " + a_cor)
 
+        #<choice>  <orig> és <supplied> check
+        for ch in sp.find_all("choice"):
+            if len(ch.find_all("orig")) == 0:
+                print(ch)
+            if len(ch.find_all("supplied")) == 0:
+                print(ch)
+
+        #<orig><supplied> under <choice>
+        for sup in sp.find_all("supplied"):
+            parent = sup.find_parent(re.compile("[a-z]+"))
+            if parent.name != "choice":
+                print(parent.name, xml)
+        for orig in sp.find_all("orig"):
+            parent = sup.find_parent(re.compile("[a-z]+"))
+            if parent.name != "choice":
+                print(parent.name, xml)
+
+        #gap
+        for ch in sp.find_all("choice"):
+            if ch.supplied.corr is not None and ch.supplied.corr.string is not None:
+                print(ch.supplied.corr.text)
+
         # p in p
         for p_p in sp.p.find_all("p"):
-            print(p_p)
+            print("<p> alatt <p>: ", xml)
 
-        # Quote
-        for q in sp.find_all("quote", recursive="not"):
-            for q_sub in sp.quote.find_all(re.compile("[a-zA-Z]+")):
-                print(q_sub, ",", xml)
+        # <p> under <quote>
+        for q in sp.find_all("quote"):
+            for q_sub in sp.quote.findChildren(re.compile("[a-zA-Z]+")):
+                if q_sub.name == "p":
+                    print("Quote alatt: " , xml)
+
+        # Quote print
+        xml_short = xml.split("/")[-1]
+        with open("quote.txt", "a", encoding="utf8") as f_doc:
+            for q in sp.find_all("quote"):
+                for orig in q.find_all("orig"):
+                    orig.string = "[Orig: " + orig.text + "]"
+                    orig.unwrap()
+                for sup in q.find_all("supplied"):
+                    sup.string = "[Supplied: " + sup.text + "]"
+                    sup.unwrap
+                quote = q.text
+                if str(q.next_sibling).startswith("<note"):
+                    note = q.next_sibling.text
+                    f_doc.write("Filename: " + xml_short + "\n" + "Quote: " + quote + "\n" + "Note: " + note + "\n\n")
+                else:
+                    f_doc.write("Filename: " + xml_short + "\n" + "Quote: " + quote + "\n" + "Note missing!" + "\n\n")
 
 
 
@@ -48,7 +88,7 @@ if __name__ == '__main__':
     filelist_in = []
     for dirpath, subdirs, files in os.walk(dir_name_in):
         for x in files:
-            if x.endswith("sz.xml"):
+            if x.endswith("KUTYAFÜLE"):
                 continue
             elif x.endswith(".xml"):
                 filelist_in.append(os.path.join(dirpath, x))
