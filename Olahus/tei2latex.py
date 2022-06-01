@@ -2,6 +2,8 @@
 # Author: gaborpalko
 # TODO TEI XML pre-processing: <?oxy...> comment removal
 # TODO TEI XML pre-processing: _1 filename change to -1: "([^\.]15\d\d\d\d\d\d)(_)(\d)" => \1-\3
+# https://docs.google.com/document/d/1Jpkln-_kjH_ONQYcJlGn9BBv1clW4ANm/edit
+# https://docs.google.com/document/d/1EMKpwDzhvV7jF08vTfOqr2wIKCMFoJTaOfnaCcibajo/edit
 
 import time
 import os
@@ -24,6 +26,9 @@ def normalize_text(string):
     string = re.sub('\s+', " ", string)
     string = re.sub("\[", "{[}", string)
     string = re.sub("\]", "{]}", string)
+    string = re.sub("<milestone unit=\"p\"/>", "{[}BEKEZDÉSHATÁR{]}", string)
+    string = re.sub("corresp=\"Olahus\"", "corresp=\"O.\"", string)
+    string = re.sub("corresp=\"editor\"", "corresp=\" \"", string)
     return string
 
 
@@ -68,7 +73,7 @@ def hi_rend(soup):
     soup = re.sub('<hi +rend *= *"bold" *>(.*?)(:?)(?:</hi>)',
                   '\\\\textbf{\\1}\\2', soup)
     """
-    return(soup)
+    return soup
 
 
 def note_critic(para):
@@ -83,24 +88,23 @@ def note_critic(para):
     return para
 
 
-def quote(quote, note):
+def quote(quot, note):
     # <quote><note type="quote">
     # Milestone p missing!
     if note is None:
         note = BeautifulSoup("<note\>", "xml")
-    q_text = quote.text
+    q_text = quot.text
     q_list = q_text.split(" ")
     if len(q_list) > 2:
         firstword = q_list[0]
-        lastword = (q_list)[-1]
+        lastword = q_list[-1]
         q_keyword = firstword + "\ldots{} " + lastword
     if len(q_list) <= 2:
-        q_keyword = quote.text
+        q_keyword = quot.text
     n_new = "\edtext{" + "}{\lemma{" + q_keyword + "}\Afootnote{" + note.text + "}}"
-    quote.string = quote.text + n_new
-    quote.unwrap()
+    quot.string = quot.text + n_new
+    quot.unwrap()
     note.extract()
-    return quote
 
 
 def paragraph(para):
@@ -113,14 +117,14 @@ def paragraph(para):
             a_cor = d.next_sibling["corresp"]
             a_text = d.next_sibling.text
             if d_cor == a_cor:
-                d_new = "\edtext{"+ a_text +"}{\lemma{" + a_text + "}\Afootnote{\\textit{" + a_cor + " corr. ex} " \
+                d_new = "\edtext{" + a_text + "}{\lemma{" + a_text + "}\Afootnote{\\textit{" + a_cor + " corr. ex} " \
                         + d_text + "}}"
             else:
                 continue
-#                lemma = previous_word(d)
-#                d_new = "\edtext{" + "}{\lemma{" + lemma + "}\Afootnote{\\textit{" + d_cor + " del. ex }" \
-#                        + lemma + " " + d_text + "}}\edtext{" + a_text + "}{\lemma{" + a_text \
-#                        + "}\Afootnote{\\textit{" + a_cor + " add.}}}"
+            #                lemma = previous_word(d)
+            #                d_new = "\edtext{" + "}{\lemma{" + lemma + "}\Afootnote{\\textit{" + d_cor + " del. ex }" \
+            #                        + lemma + " " + d_text + "}}\edtext{" + a_text + "}{\lemma{" + a_text \
+            #                        + "}\Afootnote{\\textit{" + a_cor + " add.}}}"
             d.next_sibling.extract()
             d.string = d_new
             d.unwrap()
@@ -129,9 +133,9 @@ def paragraph(para):
             d_text = d.text
             lemma = previous_word(d)
             d_new = "\edtext{" + "}{\lemma{" + lemma + "}\Afootnote{\\textit{" + d_cor + " del. ex }" \
-                        + lemma + " " + d_text + "}}"
+                    + lemma + " " + d_text + "}}"
             d.string = d_new
-#            print(d_new)
+            #            print(d_new)
             d.unwrap()
 
     # <add> type=insert
@@ -169,10 +173,10 @@ def paragraph(para):
 def header2latex(soup):
     header_str = ""
 
-#    Insert LaTeX doc header
-#    with open("begin.txt", "r", encoding="utf8") as f_begin:
-#        begin = f_begin.read()
-#        header_str += begin
+    #    Insert LaTeX doc header
+    #    with open("begin.txt", "r", encoding="utf8") as f_begin:
+    #        begin = f_begin.read()
+    #        header_str += begin
 
     header_str += "\n" + "\\begin{center}" + "\n"
 
@@ -182,17 +186,18 @@ def header2latex(soup):
     header_str += "\n" + "\\section{" + title + "}" + "\n\n"
 
     # Insert manuscript description
-    country = str(soup.country.text)
-    settlement = str(soup.settlement.text)
-    institution = str(soup.institution.text)
-    repository = str(soup.repository.text)
-    header_str += "\\textit{Manuscript used}: " + country + ", " + settlement + ", "\
-                 + institution + ", " + repository + "\n\n"
+    country = soup.country.text
+    settlement = soup.settlement.text
+    institution = soup.institution.text
+    repository = soup.repository.text
+    folio = soup.measure.text
+    header_str += "\\textit{Manuscript used}: " + country + ", " + settlement + ", " \
+                  + institution + ", " + repository + ", " + folio + "\n\n"
 
     # Insert critIntro (Notes, Photo copy). Runs only on each <p> in critIntro
-    critIntro = soup.notesStmt.find_all("note", attrs={"type": "critIntro"})
-    for i in critIntro:
-        for p in i.find_all("p"):
+    crit_intro = soup.notesStmt.find_all("note", attrs={"type": "critIntro"})
+    for elem in crit_intro:
+        for p in elem.find_all("p"):
             p = hi_rend(p).text
             header_str += p + "\n\n"
 
@@ -229,7 +234,7 @@ def text2latex(soup):
         p = paragraph(p)
         for q in p.find_all("quote"):
             n = q.next_sibling
-            q = quote(q, n)
+            quote(q, n)
         text_latex += "\n" + "\pstart" + "\n" + p.text + "\n" + "\pend" + "\n"
 
         # Letter verso
@@ -242,12 +247,12 @@ def text2latex(soup):
             p = paragraph(p)
             for q in p.find_all("quote"):
                 n = q.next_sibling
-                q = quote(q, n)
+                quote(q, n)
             text_latex += "\n" + "\pstart" + "\n" + p.text + "\n" + "\pend" + "\n"
 
     text_latex += "\n" + "\endnumbering" + "\n" + "\\selectlanguage{english}" + "\n"
     text_latex += "\n" + "\pagebreak" + "\n"
-#    text_latex += "\n" + "\end{document}" + "\n"
+    #    text_latex += "\n" + "\end{document}" + "\n"
     return text_latex
 
 
@@ -257,11 +262,10 @@ def main(xml, latex):
         sp = BeautifulSoup(f_xml, "xml")
 
         # Delete <ref> tags
-        for i in sp.find_all("ref"):
-            i.extract()
+        for elem in sp.find_all("ref"):
+            elem.extract()
 
         with open("latex2.tex", "a", encoding="utf8") as f_latex:
-
             # Write header
             h = header2latex(sp.teiHeader)
             f_latex.write(h)

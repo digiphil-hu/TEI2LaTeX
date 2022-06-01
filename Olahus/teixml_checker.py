@@ -10,7 +10,6 @@ def normalize_text(string):
     string = re.sub('\s+', " ", string)
     string = re.sub("\[", "{[}", string)
     string = re.sub("\]", "{]}", string)
-    string = re.sub("<milestone unit=\"p\"/>", "{[}BEKEZDÉSHATÁR{]}", string)
     return string
 
 
