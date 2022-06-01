@@ -86,6 +86,8 @@ def note_critic(para):
 def quote(quote, note):
     # <quote><note type="quote">
     # Milestone p missing!
+    if note is None:
+        note = BeautifulSoup("<note\>", "xml")
     q_text = quote.text
     q_list = q_text.split(" ")
     if len(q_list) > 2:
@@ -274,7 +276,7 @@ if __name__ == '__main__':
         with open("begin.txt", "r", encoding="utf8") as f_r:
             start = f_r.read()
             f_w.write(start)
-    dir_name_in = "/home/elte-dh-celestra/PycharmProjects/TEI2LaTeX/Olahus/XML2"
+    dir_name_in = "/home/elte-dh-celestra/PycharmProjects/TEI2LaTeX/Olahus/XML"
     dir_name_out = "/home/elte-dh-celestra/PycharmProjects/TEI2LaTeX/Olahus/LaTeX"
     filelist_in = []
     for dirpath, subdirs, files in os.walk(dir_name_in):

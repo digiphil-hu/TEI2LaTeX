@@ -10,6 +10,7 @@ def normalize_text(string):
     string = re.sub('\s+', " ", string)
     string = re.sub("\[", "{[}", string)
     string = re.sub("\]", "{]}", string)
+    string = re.sub("<milestone unit=\"p\"/>", "{[}BEKEZDÉSHATÁR{]}", string)
     return string
 
 
@@ -35,9 +36,9 @@ def main(xml):
         #<choice>  <orig> és <supplied> check
         for ch in sp.find_all("choice"):
             if len(ch.find_all("orig")) == 0:
-                print(ch)
+                print(ch, xml)
             if len(ch.find_all("supplied")) == 0:
-                print(ch)
+                print(ch, xml)
 
         #<orig><supplied> under <choice>
         for sup in sp.find_all("supplied"):
@@ -53,11 +54,16 @@ def main(xml):
         for p_p in sp.p.find_all("p"):
             print("<p> alatt <p>: ", xml)
 
-        # <p> under <quote>
+        # <quote><p>; <quote><quote>; <quote> + MISSING sibling
         for q in sp.find_all("quote"):
+            if q.next_sibling is None:
+                print("Quote next tag missing: ", xml)
+            if q.next_sibling is not None and q.next_sibling.name != "note":
+                print(f"Quote but no note, but: {q.next_sibling.name}", xml)
             for q_sub in sp.quote.findChildren(re.compile("[a-zA-Z]+")):
                 if q_sub.name == "p":
                     print("Quote alatt: " , xml)
+
 """
         # Quote print
         xml_short = xml.split("/")[-1]
@@ -79,7 +85,7 @@ def main(xml):
 
 
 if __name__ == '__main__':
-    dir_name_in = "/home/elte-dh-celestra/PycharmProjects/TEI2LaTeX/Olahus/XML2"
+    dir_name_in = "/home/elte-dh-celestra/PycharmProjects/TEI2LaTeX/Olahus/XML"
     filelist_in = []
     for dirpath, subdirs, files in os.walk(dir_name_in):
         for x in files:
