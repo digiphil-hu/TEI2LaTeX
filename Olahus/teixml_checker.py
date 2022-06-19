@@ -24,7 +24,7 @@ def main(xml):
         for i in sp.find_all("ref"):
             i.extract()
 
-        # Error check
+        # Error check <del><add>
         for d in sp.find_all("del"):
             if str(d.next_sibling).startswith("<add"):
                 d_cor = d["corresp"]
@@ -62,6 +62,11 @@ def main(xml):
             for q_sub in sp.quote.findChildren(re.compile("[a-zA-Z]+")):
                 if q_sub.name == "p":
                     print("Quote alatt: " , xml)
+        # <quote> in verso?
+        for div in sp.find_all("div", attrs={"type": "verso"}):
+            print("Verso: ", xml)
+            for elem in div.find_all("quote"):
+                print("Quote in verso: ", xml)
 
 """
         # Quote print

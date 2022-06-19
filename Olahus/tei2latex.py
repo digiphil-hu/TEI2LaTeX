@@ -1,9 +1,10 @@
 # This script converts letters encoded in XML to LaTeX files.
 # Author: gaborpalko
 # TODO TEI XML pre-processing: <?oxy...> comment removal
-# TODO TEI XML pre-processing: _1 filename change to -1: "([^\.]15\d\d\d\d\d\d)(_)(\d)" => \1-\3
 # https://docs.google.com/document/d/1Jpkln-_kjH_ONQYcJlGn9BBv1clW4ANm/edit
 # https://docs.google.com/document/d/1EMKpwDzhvV7jF08vTfOqr2wIKCMFoJTaOfnaCcibajo/edit
+# TODO Empty \edtext{} ???
+# TODO Empty paragraph: \pstart \pend
 
 import time
 import os
@@ -26,6 +27,8 @@ def normalize_text(string):
     string = re.sub('\s+', " ", string)
     string = re.sub("\[", "{[}", string)
     string = re.sub("\]", "{]}", string)
+    string = re.sub("_", "\\_", string)
+    string = re.sub("#", "\\#", string)
     string = re.sub("<milestone unit=\"p\"/>", "{[}BEKEZDÉSHATÁR{]}", string)
     string = re.sub("corresp=\"Olahus\"", "corresp=\"O.\"", string)
     string = re.sub("corresp=\"editor\"", "corresp=\" \"", string)
@@ -294,5 +297,8 @@ if __name__ == '__main__':
     for i in filelist_in:
         out = i.replace(dir_name_in, dir_name_out).replace(".xml", ".tex")
         main(i, out)
+    with open("latex2.tex", "a", encoding="utf8") as f_w:
+        # End
+        f_w.write("\n" + "\\end{document}")
     end = time.time()
     print(end - begin)
