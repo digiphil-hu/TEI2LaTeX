@@ -196,12 +196,13 @@ def header2latex(soup):
     folio = soup.measure.text
     header_str += "\\textit{Manuscript used}: " + institution + ", " + repository + ", fol. " + folio + "\n\n"
 
-    # Insert critIntro (Notes, Photo copy). Runs only on each <p> in critIntro
+    # Insert critIntro (Photo copy). Runs only on each <p> in critIntro
     crit_intro = soup.notesStmt.find_all("note", attrs={"type": "critIntro"})
     for elem in crit_intro:
         for p in elem.find_all("p"):
-            p = hi_rend(p).text
-            header_str += p + "\n\n"
+            if p.text.startswith("Photo copy:") and p.text != "Photo copy:":
+                p = hi_rend(p).text
+                header_str += p + "\n\n"
 
     # Insert publication
     for publication in soup.notesStmt.find_all("note", attrs={"type": "publication"}):
@@ -213,6 +214,14 @@ def header2latex(soup):
         translation = hi_rend(translation)
         header_str += str(translation.text) + "\n"
 
+    # Insert critIntro (Notes:). Runs only on each <p> in critIntro
+    crit_intro = soup.notesStmt.find_all("note", attrs={"type": "critIntro"})
+    for elem in crit_intro:
+        for p in elem.find_all("p"):
+            if p.text.startswith("Notes:") and p.text != "Notes":
+                p = hi_rend(p).text
+                header_str += p + "\n\n"
+
     header_str += "\n" + "\end{center}" + "\n"
     return header_str
 
@@ -223,7 +232,8 @@ def text2latex(soup):
     # Regesta: insert <floatingText> into latex string and then remove tag from soup object
     for p in soup.floatingText.find_all("p"):
         p = hi_rend(p).text
-    text_latex += "\n" + "\\begin{quote}" + "\n" + p + "\n" + "\end{quote}" + "\n"
+#    text_latex += "\n" + "\\begin{quote}" + "\n" + p + "\n" + "\end{quote}" + "\n"
+        text_latex += "\n" + "\medskip{}" + "\n" + "\noindent{}{\small\textit{" + p + "}}"
     soup.floatingText.extract()
 
     # Letter text
