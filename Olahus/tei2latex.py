@@ -17,7 +17,7 @@ def previous_word(tag):
     if len(prev_list) > 2:
         prev_w = prev_list[-2]
     else:
-        prev_w = "Unkonwn"
+        prev_w = "Unknown"
     return prev_w
 
 
@@ -31,7 +31,7 @@ def normalize_text(string):
     string = re.sub("#", "\\#", string)
     string = re.sub("<milestone unit=\"p\"/>", "{[}BEKEZDÉSHATÁR{]}", string)
     string = re.sub("corresp=\"Olahus\"", "corresp=\"O.\"", string)
-    string = re.sub("corresp=\"editor\"", "corresp=\" \"", string)
+    string = re.sub("corresp=\"editor\"", "corresp=\" \"", string) #<del corresp="editor">
     return string
 
 
@@ -104,8 +104,8 @@ def quote(quot, note):
         q_keyword = firstword + "\ldots{} " + lastword
     if len(q_list) <= 2:
         q_keyword = quot.text
-    n_new = "\edtext{" + "}{\lemma{" + q_keyword + "}\Afootnote{" + note.text + "}}"
-    quot.string = quot.text + n_new
+    n_new = "\edtext{" + q_text + "}{\lemma{" + q_keyword + "}{\Afootnote{" + note.text + "}}}"
+    quot.string = n_new
     quot.unwrap()
     note.extract()
 
@@ -120,8 +120,7 @@ def paragraph(para):
             a_cor = d.next_sibling["corresp"]
             a_text = d.next_sibling.text
             if d_cor == a_cor:
-                d_new = "\edtext{" + a_text + "}{\lemma{" + a_text + "}\Afootnote{\\textit{" + a_cor + " corr. ex} " \
-                        + d_text + "}}"
+                d_new = "\edtext{" + a_text + "}{\Afootnote{\\textit{" + a_cor + " corr. ex} " + d_text + "}}"
             else:
                 continue
             #                lemma = previous_word(d)
@@ -131,26 +130,34 @@ def paragraph(para):
             d.next_sibling.extract()
             d.string = d_new
             d.unwrap()
+
+        #<del> not followed by <add>
+        #TODO <note> or <add> under <del>?
         else:
             d_cor = d["corresp"]
             d_text = d.text
             lemma = previous_word(d)
-            d_new = "\edtext{" + "}{\lemma{" + lemma + "}\Afootnote{\\textit{" + d_cor + " del. ex }" \
-                    + lemma + " " + d_text + "}}"
+            d_new = "\edtext{" + lemma + "}{\Afootnote{\\textit{" + d_cor + " del. ex }" + d_text + "}}"
             d.string = d_new
-            #            print(d_new)
             d.unwrap()
 
-    # <add> type=insert
+    # <add type=insert>
     for a in para.find_all("add", attrs={"type": "insert"}):
         if len(a.find_all("add")) == 0:
             a_text = a.text
             a_cor = a["corresp"]
-            a_new = "\edtext{" + a_text + "}{\lemma{" + a_text + "}\Afootnote{\\textit{" + a_cor + " add.}}}"
+            a_new = "\edtext{" + a_text + "}{\Afootnote{\\textit{" + a_cor + " add.}}}"
             a.string = a_new
             a.unwrap()
-        else:
-            print("Add alatt add")
+
+    # If <add type=insert> has <add> as child:
+    for a in para.find_all("add", attrs={"type": "insert"}):
+        if len(a.find_all("add")) == 0:
+            a_text = a.text
+            a_cor = a["corresp"]
+            a_new = "\edtext{" + a_text + "}{\Afootnote{\\textit{" + a_cor + " add.}}}"
+            a.string = a_new
+            a.unwrap()
 
     # <choice> <supplied>
     for ch in para.find_all("choice"):
@@ -166,7 +173,7 @@ def paragraph(para):
         else:
             ch_text = ch.text
             sup_text = ch.supplied.text
-            ch_new = "\edtext{" + sup_text + "}{\lemma{" + sup_text + "}\Afootnote{\\textit{corr. ex} " + ch_text + "}}"
+            ch_new = "\edtext{" + sup_text + "}{\Afootnote{\\textit{corr. ex} " + ch_text + "}}"
             ch.supplied.extract()
             ch.string = ch_new
             ch.unwrap()
@@ -206,13 +213,19 @@ def header2latex(soup):
 
     # Insert publication
     for publication in soup.notesStmt.find_all("note", attrs={"type": "publication"}):
-        publication = hi_rend(publication)
-        header_str += "Published: " + str(publication.text) + "\n"
+        if publication.text == "" or publication.text == " ":
+            continue
+        else:
+            publication = hi_rend(publication)
+            header_str += "\\textsc{" + "Published: " + "}" + "\n" + str(publication.text) + "\n"
 
     # Insert translation
     for translation in soup.notesStmt.find_all("note", attrs={"type": "translation"}):
-        translation = hi_rend(translation)
-        header_str += str(translation.text) + "\n"
+        if translation.text == "" or translation.text == " ":
+            continue
+        else:
+            translation = hi_rend(translation)
+            header_str += str(translation.text) + "\n"
 
     # Insert critIntro (Notes:). Runs only on each <p> in critIntro
     crit_intro = soup.notesStmt.find_all("note", attrs={"type": "critIntro"})
@@ -233,7 +246,7 @@ def text2latex(soup):
     for p in soup.floatingText.find_all("p"):
         p = hi_rend(p).text
 #    text_latex += "\n" + "\\begin{quote}" + "\n" + p + "\n" + "\end{quote}" + "\n"
-        text_latex += "\n" + "\medskip{}" + "\n" + "\noindent{}{\small\textit{" + p + "}}"
+        text_latex += "\n" + "\medskip{}" + "\n" + "\\noindent{}{\small\\textit{" + p + "}}"
     soup.floatingText.extract()
 
     # Letter text
