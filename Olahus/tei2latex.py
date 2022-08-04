@@ -189,13 +189,12 @@ def header2latex(soup):
     header_str += "\n" + "\\section{" + title + "}" + "\n\n"
 
     # Insert manuscript description
-    country = soup.country.text
-    settlement = soup.settlement.text
+#    country = soup.country.text
+#    settlement = soup.settlement.text
     institution = soup.institution.text
     repository = soup.repository.text
     folio = soup.measure.text
-    header_str += "\\textit{Manuscript used}: " + country + ", " + settlement + ", " \
-                  + institution + ", " + repository + ", " + folio + "\n\n"
+    header_str += "\\textit{Manuscript used}: " + institution + ", " + repository + ", fol. " + folio + "\n\n"
 
     # Insert critIntro (Notes, Photo copy). Runs only on each <p> in critIntro
     crit_intro = soup.notesStmt.find_all("note", attrs={"type": "critIntro"})
@@ -207,7 +206,7 @@ def header2latex(soup):
     # Insert publication
     for publication in soup.notesStmt.find_all("note", attrs={"type": "publication"}):
         publication = hi_rend(publication)
-        header_str += str(publication.text) + "\n"
+        header_str += "Published: " + str(publication.text) + "\n"
 
     # Insert translation
     for translation in soup.notesStmt.find_all("note", attrs={"type": "translation"}):
