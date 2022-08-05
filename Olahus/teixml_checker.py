@@ -64,7 +64,6 @@ def main(xml):
                     print("Quote alatt: " , xml)
         # <quote> in verso?
         for div in sp.find_all("div", attrs={"type": "verso"}):
-            print("Verso: ", xml)
             for elem in div.find_all("quote"):
                 print("Quote in verso: ", xml)
 

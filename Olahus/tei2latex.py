@@ -13,12 +13,13 @@ import re
 
 
 def previous_word(tag):
-    prev_list = tag.previous_element.text.split(" ")
-    if len(prev_list) > 2:
-        prev_w = prev_list[-2]
+    if tag.previous_element.string is not None and tag.previous_element.text != " ":
+        print("FIRST", tag, tag.previous_element.text)
+    elif tag.previous_element.previous_element is not None and tag.previous_element.previous_element.text != " ":
+        print("SECOND", tag, tag.previous_element.previous_element.text)
     else:
-        prev_w = "Unknown"
-    return prev_w
+        print("THIRD", tag)
+    return "UNKNOWN"
 
 
 def normalize_text(string):
@@ -31,7 +32,7 @@ def normalize_text(string):
     string = re.sub("#", "\\#", string)
     string = re.sub("<milestone unit=\"p\"/>", "{[}BEKEZDÉSHATÁR{]}", string)
     string = re.sub("corresp=\"Olahus\"", "corresp=\"O.\"", string)
-    string = re.sub("corresp=\"editor\"", "corresp=\" \"", string) #<del corresp="editor">
+    string = re.sub("corresp=\"editor\"", "corresp=\" \"", string)  # <del corresp="editor">
     return string
 
 
@@ -104,7 +105,7 @@ def quote(quot, note):
         q_keyword = firstword + "\ldots{} " + lastword
     if len(q_list) <= 2:
         q_keyword = quot.text
-    n_new = "\edtext{" + q_text + "}{\lemma{" + q_keyword + "}{\Afootnote{" + note.text + "}}}"
+    n_new = "\edtext{" + q_text + "}{\lemma{" + q_keyword + "}\Afootnote{" + note.text + "}}"
     quot.string = n_new
     quot.unwrap()
     note.extract()
@@ -112,8 +113,20 @@ def quote(quot, note):
 
 def paragraph(para):
     # Input: <p> after hi_rend() including normalization.
+
+    # <del> not followed by <add>
+    # TODO <note> or <add> under <del>?
     for d in para.find_all("del"):
-        # <del><add>
+        if not str(d.next_sibling).startswith("<add"):
+            d_cor = d["corresp"]
+            d_text = d.text
+            lemma = previous_word(d)
+            d_new = "\edtext{" + lemma + "}{\Afootnote{\\textit{" + d_cor + " del. ex }" + lemma + " " + d_text + "}}"
+            d.string = d_new
+            d.unwrap()
+
+    # <del><add>
+    for d in para.find_all("del"):
         if str(d.next_sibling).startswith("<add"):
             d_cor = d["corresp"]
             d_text = d.text
@@ -123,21 +136,7 @@ def paragraph(para):
                 d_new = "\edtext{" + a_text + "}{\Afootnote{\\textit{" + a_cor + " corr. ex} " + d_text + "}}"
             else:
                 continue
-            #                lemma = previous_word(d)
-            #                d_new = "\edtext{" + "}{\lemma{" + lemma + "}\Afootnote{\\textit{" + d_cor + " del. ex }" \
-            #                        + lemma + " " + d_text + "}}\edtext{" + a_text + "}{\lemma{" + a_text \
-            #                        + "}\Afootnote{\\textit{" + a_cor + " add.}}}"
             d.next_sibling.extract()
-            d.string = d_new
-            d.unwrap()
-
-        #<del> not followed by <add>
-        #TODO <note> or <add> under <del>?
-        else:
-            d_cor = d["corresp"]
-            d_text = d.text
-            lemma = previous_word(d)
-            d_new = "\edtext{" + lemma + "}{\Afootnote{\\textit{" + d_cor + " del. ex }" + d_text + "}}"
             d.string = d_new
             d.unwrap()
 
@@ -171,9 +170,9 @@ def paragraph(para):
             ch.string = "<\ldots{}> "
             ch.unwrap()
         else:
-            ch_text = ch.text
+            orig_text = ch.orig.text
             sup_text = ch.supplied.text
-            ch_new = "\edtext{" + sup_text + "}{\Afootnote{\\textit{corr. ex} " + ch_text + "}}"
+            ch_new = "\edtext{" + sup_text + "}{\Afootnote{\\textit{corr. ex} " + orig_text + "}}"
             ch.supplied.extract()
             ch.string = ch_new
             ch.unwrap()
@@ -196,8 +195,8 @@ def header2latex(soup):
     header_str += "\n" + "\\section{" + title + "}" + "\n\n"
 
     # Insert manuscript description
-#    country = soup.country.text
-#    settlement = soup.settlement.text
+    #    country = soup.country.text
+    #    settlement = soup.settlement.text
     institution = soup.institution.text
     repository = soup.repository.text
     folio = soup.measure.text
@@ -217,7 +216,7 @@ def header2latex(soup):
             continue
         else:
             publication = hi_rend(publication)
-            header_str += "\\textsc{" + "Published: " + "}" + "\n" + str(publication.text) + "\n"
+            header_str += "\\textsc{" + "Published: " + "}" + str(publication.text) + "\n"
 
     # Insert translation
     for translation in soup.notesStmt.find_all("note", attrs={"type": "translation"}):
@@ -231,7 +230,7 @@ def header2latex(soup):
     crit_intro = soup.notesStmt.find_all("note", attrs={"type": "critIntro"})
     for elem in crit_intro:
         for p in elem.find_all("p"):
-            if p.text.startswith("Notes:") and p.text != "Notes":
+            if p.text.startswith("Notes:") and p.text != "Notes:":
                 p = hi_rend(p).text
                 header_str += p + "\n\n"
 
@@ -245,7 +244,7 @@ def text2latex(soup):
     # Regesta: insert <floatingText> into latex string and then remove tag from soup object
     for p in soup.floatingText.find_all("p"):
         p = hi_rend(p).text
-#    text_latex += "\n" + "\\begin{quote}" + "\n" + p + "\n" + "\end{quote}" + "\n"
+        #    text_latex += "\n" + "\\begin{quote}" + "\n" + p + "\n" + "\end{quote}" + "\n"
         text_latex += "\n" + "\medskip{}" + "\n" + "\\noindent{}{\small\\textit{" + p + "}}"
     soup.floatingText.extract()
 
@@ -282,7 +281,7 @@ def text2latex(soup):
 
 
 def main(xml, latex):
-    print(xml)
+    # print(xml)
     with open(xml, "r", encoding="utf8") as f_xml:
         sp = BeautifulSoup(f_xml, "xml")
 
