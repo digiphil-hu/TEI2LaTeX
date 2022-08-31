@@ -18,7 +18,7 @@ def main(xml):
         sp = BeautifulSoup(f_xml, "xml")
         sp1 = normalize_text(str(sp))
         sp = BeautifulSoup(sp1, "xml")
-
+        print(xml)
 
         # Delete <ref> tags
         for i in sp.find_all("ref"):
@@ -32,7 +32,7 @@ def main(xml):
                 if d_cor != a_cor:
                     print("File name: " + xml + "Del corresp: " + d_cor + "Add corrsp: " + a_cor)
 
-        #<choice>  <orig> és <supplied> check
+        #<choice> <orig> és <supplied> check
         for ch in sp.find_all("choice"):
             if len(ch.find_all("orig")) == 0:
                 print(ch, xml)
@@ -66,6 +66,11 @@ def main(xml):
         for div in sp.find_all("div", attrs={"type": "verso"}):
             for elem in div.find_all("quote"):
                 print("Quote in verso: ", xml)
+
+        # del alatt del
+        for d1 in sp.find_all("del"):
+            for d2 in d1.find_all("del"):
+                print("Del alatt del: ", xml)
 
 """
         # Quote print

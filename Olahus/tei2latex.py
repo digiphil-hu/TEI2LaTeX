@@ -3,6 +3,7 @@
 # TODO TEI XML pre-processing: <?oxy...> comment removal
 # https://docs.google.com/document/d/1Jpkln-_kjH_ONQYcJlGn9BBv1clW4ANm/edit
 # https://docs.google.com/document/d/1EMKpwDzhvV7jF08vTfOqr2wIKCMFoJTaOfnaCcibajo/edit
+# https://btkmtahu.sharepoint.com/:w:/r/sites/DigiPhil2-TEI2LaTeX/Megosztott%20dokumentumok/TEI%202%20LaTeX/OLAHUS/K%C3%B3dol%C3%A1s%20-%20ellen%C5%91rz%C3%A9s.docx?d=wcdc5d3d4c7684d0691978244dbefb41f&csf=1&web=1&e=2DVK4l
 # TODO Empty paragraph: \pstart \pend
 
 import time
@@ -11,20 +12,55 @@ from bs4 import BeautifulSoup
 import re
 
 
+def last_word(txt):
+    txt = re.sub(".text[si][ct]{([^}]+)}", "\\0", txt)
+    txt = re.sub(".footnoteA{[^}]+}", " ", txt)
+    txt = re.sub("{\[}\d+\.{\]}", "", txt)
+    txt_list = txt.rstrip(",. );!?:").split(" ")
+    txt = txt_list[-1]
+    if txt.startswith("\index[pers]"):
+        txt_list = txt.split("}")
+        txt = txt_list[-1]
+    txt = txt.lstrip("(")
+    return txt
+
+
 def previous_word(tag):
-    if tag.previous_element.string is not None and tag.previous_element.text != " ":
-        print("FIRST", tag, tag.previous_element.text)
-    elif tag.previous_element.previous_element is not None and tag.previous_element.previous_element.text != " ":
-        print("SECOND", tag, tag.previous_element.previous_element.text)
-    else:
-        print("THIRD", tag)
-    return "UNKNOWN"
+    par_tag = tag.find_parent()
+    sibl_tag = tag.find_previous_sibling()
+
+    # parent == <p>,  previous sibling is text:
+    if par_tag.name == "p" and sibl_tag is not None:
+        print(sibl_tag.name, "----", sibl_tag.text)
+    return "something"
+"""
+    # parent = <p>, no previous sibling, there is text between <p> and <del>
+    if par_tag.name == "p" and sibl_tag is None:
+        raw_text = tag.previous_element.text
+        lastword = last_word(raw_text)
+        if tag.previous_element.name == "p" or raw_text == "" or raw_text == " " or lastword == "" or lastword == " ":
+            return "UNKNOWN"
+        else: 
+    #        print(lastword)
+            return lastword
+
+
+
+    return
+       
+    #parent == <p>, previus sibling is <add>:
+    if par_tag.name == "p" and sibl_tag.name == "add":
+        lastword = last_word(sibl_tag.text)
+        print(tag.text, lastword)
+        return lastword
+"""
+
 
 
 def normalize_text(string):
     # Input and output: STRING!!!! [ and ] => {}
     string = re.sub("[\n\t\s]+", " ", string)
-    string = re.sub('\s+', " ", string)
+    string = re.sub("\s+", " ", string)
     string = re.sub("\[", "{[}", string)
     string = re.sub("\]", "{]}", string)
     string = re.sub("_", "\\_", string)
@@ -67,15 +103,6 @@ def hi_rend(soup):
                 hi.unwrap()
         else:
             print(hi)
-
-    """
-    soup = re.sub('<hi +rend *= *"italic" *>(.*?)(:?)(?:</hi>)',
-                  '\\\\textit{\\1}\\2', soup)
-    soup = re.sub('<hi +rend *= *"smallcap" *>(.*?)(:?)(?:</hi>)',
-                  '\\\\textsc{\\1}\\2', soup)
-    soup = re.sub('<hi +rend *= *"bold" *>(.*?)(:?)(?:</hi>)',
-                  '\\\\textbf{\\1}\\2', soup)
-    """
     return soup
 
 
@@ -94,6 +121,7 @@ def note_critic(para):
 def quote(quot, note):
     # <quote><note type="quote">
     # Milestone p missing!
+    # Are they really "words"?
     if note is None:
         note = BeautifulSoup("<note\>", "xml")
     q_text = quot.text
@@ -280,7 +308,7 @@ def text2latex(soup):
 
 
 def main(xml, latex):
-    # print(xml)
+    #    print(xml)
     with open(xml, "r", encoding="utf8") as f_xml:
         sp = BeautifulSoup(f_xml, "xml")
 
