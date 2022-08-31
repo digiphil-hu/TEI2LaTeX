@@ -3,7 +3,6 @@
 # TODO TEI XML pre-processing: <?oxy...> comment removal
 # https://docs.google.com/document/d/1Jpkln-_kjH_ONQYcJlGn9BBv1clW4ANm/edit
 # https://docs.google.com/document/d/1EMKpwDzhvV7jF08vTfOqr2wIKCMFoJTaOfnaCcibajo/edit
-# TODO Empty \edtext{} ???
 # TODO Empty paragraph: \pstart \pend
 
 import time
