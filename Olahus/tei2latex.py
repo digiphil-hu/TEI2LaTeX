@@ -26,36 +26,34 @@ def last_word(txt):
 
 
 def previous_word(tag):
-    par_tag = tag.find_parent()
-    sibl_tag = tag.find_previous_sibling()
-
-    # parent == <p>,  previous sibling is text:
-    if par_tag.name == "p" and sibl_tag is not None:
-        print(sibl_tag.name, "----", sibl_tag.text)
-    return "something"
-"""
-    # parent = <p>, no previous sibling, there is text between <p> and <del>
-    if par_tag.name == "p" and sibl_tag is None:
+    # <del> anywhere, text element precedes it
+    # todo [2.]
+    if tag.previous_element.name is None and tag.previous_element.text.rstrip(".,!?; ") !="":
         raw_text = tag.previous_element.text
         lastword = last_word(raw_text)
-        if tag.previous_element.name == "p" or raw_text == "" or raw_text == " " or lastword == "" or lastword == " ":
-            return "UNKNOWN"
-        else: 
-    #        print(lastword)
+        if lastword != "":
             return lastword
-
-
-
-    return
+    if tag.previous_element.name == "add":
+        raw_text = tag.previous_element.text
+        lastword = last_word(raw_text)
+        #print(tag.find_parent().name, "------", tag.previous_element.name, lastword, "---------", tag.text)
+        if lastword != "":
+            return lastword
+    print(f"Parent: {tag.find_parent().name}  Prev: {tag.previous_element.name}")
+    return "Unknown"
+"""
        
     #parent == <p>, previus sibling is <add>:
     if par_tag.name == "p" and sibl_tag.name == "add":
         lastword = last_word(sibl_tag.text)
-        print(tag.text, lastword)
-        return lastword
+        print(sibl_tag.previous_sibling.name , "<add>: ", sibl_tag.text, " ", "<del>", tag.text)
+    return "KUTYA"
+
+# parent == <p>,  previous sibling is text:
+#    if par_tag.name == "p" and sibl_tag is not None:
+#        print(sibl_tag.name, "----", sibl_tag.text)
+#    return "something"
 """
-
-
 
 def normalize_text(string):
     # Input and output: STRING!!!! [ and ] => {}
@@ -129,9 +127,11 @@ def quote(quot, note):
     if len(q_list) > 2:
         firstword = q_list[0]
         lastword = q_list[-1]
+#        print(firstword, "------", lastword)
         q_keyword = firstword + "\ldots{} " + lastword
     if len(q_list) <= 2:
         q_keyword = quot.text
+#        print(q_keyword)
     n_new = "\edtext{" + q_text + "}{\lemma{" + q_keyword + "}\Afootnote{" + note.text + "}}"
     quot.string = n_new
     quot.unwrap()
@@ -308,7 +308,7 @@ def text2latex(soup):
 
 
 def main(xml, latex):
-    #    print(xml)
+    print(xml.lstrip("/home/elte-dh-celestra/PycharmProjects/TEI2LaTeX/Olahus/XML"))
     with open(xml, "r", encoding="utf8") as f_xml:
         sp = BeautifulSoup(f_xml, "xml")
 
