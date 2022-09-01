@@ -33,14 +33,16 @@ def previous_word(tag):
         lastword = last_word(raw_text)
         if lastword != "":
             return lastword
-    if tag.previous_element.name == "add":
-        raw_text = tag.previous_element.text
+
+    if tag.find_parent().name == "add":
+        raw_text = tag.find_parent().text
         lastword = last_word(raw_text)
-        #print(tag.find_parent().name, "------", tag.previous_element.name, lastword, "---------", tag.text)
         if lastword != "":
             return lastword
-    print(f"Parent: {tag.find_parent().name}  Prev: {tag.previous_element.name}")
+
+    print(f"Parent: {tag.find_parent().name}  Prev: {tag.previous_element.name} Deleted text: {tag.text}")
     return "Unknown"
+
 """
        
     #parent == <p>, previus sibling is <add>:
