@@ -28,7 +28,7 @@ def last_word(txt):
 def previous_word(tag):
     # <del> anywhere, text element precedes it
     # todo [2.]
-    if tag.previous_element.name is None and tag.previous_element.text.rstrip(".,!?; ") !="":
+    if tag.previous_element.name is None and len(tag.previous_element.text.rstrip(".,!?; ")) > 0:
         raw_text = tag.previous_element.text
         lastword = last_word(raw_text)
         if lastword != "":
@@ -40,7 +40,7 @@ def previous_word(tag):
         if lastword != "":
             return lastword
 
-    print(f"Parent: {tag.find_parent().name}  Prev: {tag.previous_element.name} Deleted text: {tag.text}")
+#    print(f"Parent: {tag.find_parent().name}  Prev: {tag.previous_element.name} Deleted text: {tag.text}")
     return "Unknown"
 
 """
@@ -56,6 +56,7 @@ def previous_word(tag):
 #        print(sibl_tag.name, "----", sibl_tag.text)
 #    return "something"
 """
+
 
 def normalize_text(string):
     # Input and output: STRING!!!! [ and ] => {}
@@ -125,15 +126,20 @@ def quote(quot, note):
     if note is None:
         note = BeautifulSoup("<note\>", "xml")
     q_text = quot.text
+    q_text = q_text.replace("{[}BEKEZDÉSHATÁR{]}", "").replace("OLDALTÖRÉS", "")
+    print(q_text)
+    q_text = re.sub("\\\edtext.+}}", "", q_text).replace("  ", " ").rstrip("., ").lstrip(" ")
+    q_text = re.sub("\\\index\[\w+\]{\w+}", "", q_text)
+    print(q_text)
     q_list = q_text.split(" ")
     if len(q_list) > 2:
-        firstword = q_list[0]
-        lastword = q_list[-1]
-#        print(firstword, "------", lastword)
+        firstword = q_list[0].rstrip(".,")
+        lastword = q_list[-1].rstrip(".,")
+        print("Quote első és utsó szavai: ", firstword, "------", lastword)
         q_keyword = firstword + "\ldots{} " + lastword
     if len(q_list) <= 2:
-        q_keyword = quot.text
-#        print(q_keyword)
+        q_keyword = q_text.rstrip(".,")
+        print("Rövid quote: ", q_keyword)
     n_new = "\edtext{" + q_text + "}{\lemma{" + q_keyword + "}\Afootnote{" + note.text + "}}"
     quot.string = n_new
     quot.unwrap()
@@ -150,7 +156,7 @@ def paragraph(para):
             d_cor = d["corresp"]
             d_text = d.text
             lemma = previous_word(d)
-            d_new = "\edtext{" + lemma + "}{\Afootnote{\\textit{" + d_cor + " del. ex }" + lemma + " " + d_text + "}}"
+            d_new = "\edtext{" + "}{\lemma{" + lemma + "}\Afootnote{\\textit{" + d_cor + " del. ex }" + lemma + " " + d_text + "}}"
             d.string = d_new
             d.unwrap()
 
