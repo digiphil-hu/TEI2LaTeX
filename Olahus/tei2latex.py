@@ -3,7 +3,8 @@
 # TODO TEI XML pre-processing: <?oxy...> comment removal
 # https://docs.google.com/document/d/1Jpkln-_kjH_ONQYcJlGn9BBv1clW4ANm/edit
 # https://docs.google.com/document/d/1EMKpwDzhvV7jF08vTfOqr2wIKCMFoJTaOfnaCcibajo/edit
-# https://btkmtahu.sharepoint.com/:w:/r/sites/DigiPhil2-TEI2LaTeX/Megosztott%20dokumentumok/TEI%202%20LaTeX/OLAHUS/K%C3%B3dol%C3%A1s%20-%20ellen%C5%91rz%C3%A9s.docx?d=wcdc5d3d4c7684d0691978244dbefb41f&csf=1&web=1&e=2DVK4l
+# https://btkmtahu.sharepoint.com/:w:/r/sites/DigiPhil2-TEI2LaTeX/Megosztott%20dokumentumok/TEI%202%20LaTeX/OLAHUS/
+# K%C3%B3dol%C3%A1s%20-%20ellen%C5%91rz%C3%A9s.docx?d=wcdc5d3d4c7684d0691978244dbefb41f&csf=1&web=1&e=2DVK4l
 # TODO Empty paragraph: \pstart \pend
 
 import time
@@ -135,11 +136,11 @@ def quote(quot, note):
     if len(q_list) > 2:
         firstword = q_list[0].rstrip(".,")
         lastword = q_list[-1].rstrip(".,")
-        print("Quote első és utsó szavai: ", firstword, "------", lastword)
+#        print("Quote első és utsó szavai: ", firstword, "------", lastword)
         q_keyword = firstword + "\ldots{} " + lastword
     if len(q_list) <= 2:
         q_keyword = q_text.rstrip(".,")
-        print("Rövid quote: ", q_keyword)
+#        print("Rövid quote: ", q_keyword)
     n_new = "\edtext{" + q_text + "}{\lemma{" + q_keyword + "}\Afootnote{" + note.text + "}}"
     quot.string = n_new
     quot.unwrap()
@@ -156,7 +157,8 @@ def paragraph(para):
             d_cor = d["corresp"]
             d_text = d.text
             lemma = previous_word(d)
-            d_new = "\edtext{" + "}{\lemma{" + lemma + "}\Afootnote{\\textit{" + d_cor + " del. ex }" + lemma + " " + d_text + "}}"
+            d_new = "\edtext{" + "}{\lemma{" + lemma + "}\Afootnote{\\textit{" + d_cor + " del. ex }"\
+                    + lemma + " " + d_text + "}}"
             d.string = d_new
             d.unwrap()
 
