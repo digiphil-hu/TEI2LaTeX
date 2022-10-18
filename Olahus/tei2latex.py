@@ -227,9 +227,11 @@ def header2latex(soup):
     header_str += "\n" + "\\begin{center}" + "\n"
 
     # Insert title
-    title = str(soup.fileDesc.titleStmt.title.text)
-    title = normalize_text(title)
-    header_str += "\n" + "\\section{" + title + "}" + "\n\n"
+    title1 = str(soup.fileDesc.titleStmt.find("title", attrs={"type": "num"}).text)
+    title1 = normalize_text(title1)
+    title2 = str(soup.fileDesc.titleStmt.find("title", attrs={"type": "main"}).text)
+    title2 = normalize_text(title2)
+    header_str += "\n" + "\\section{" + title1 + " - " + title2 + "}" + "\n\n"
 
     # Insert manuscript description
     #    country = soup.country.text
