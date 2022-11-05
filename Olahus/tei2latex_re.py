@@ -48,6 +48,7 @@ def previous_word(tag):
 
 def note_critic(note):
     # Input: normalized soup object preprocessed by the function: hi_rend()
+    note = nor.normalize_text(note, {"all"})
     para_str = str(note)
     for note_cr_tag in note.find_all("note", attrs={"type": "critic"}):
         note_text = note_cr_tag.text
@@ -66,10 +67,10 @@ def quote(quot, note):
         note = BeautifulSoup("<note\>", "xml")
     q_text = quot.text
     q_text = q_text.replace("{[}BEKEZDÉSHATÁR{]}", "").replace("OLDALTÖRÉS", "")
-    print(q_text)
+#   print(q_text)
     q_text = re.sub("\\\edtext.+}}", "", q_text).replace("  ", " ").rstrip("., ").lstrip(" ")
     q_text = re.sub("\\\index\[\w+\]{\w+}", "", q_text)
-    print(q_text)
+#   print(q_text)
     q_list = q_text.split(" ")
     if len(q_list) > 2:
         firstword = q_list[0].rstrip(".,")
@@ -86,7 +87,12 @@ def quote(quot, note):
 
 
 def paragraph(para):
-    # Input: <p> after hi_rend() including normalization.
+    # Input: <p> without normalization.
+    para = nor.normalize_text(para, {"all"})
+
+    for appTag in para.find_all("app"):
+        print(f"App: {appTag}")
+
     for delAlone in para.find_all("del"):
         if not str(delAlone.next_sibling).startswith("<add"):
             delAlone = del_tag(delAlone)
@@ -96,8 +102,8 @@ def paragraph(para):
     for delAddTag in para.find_all("del"):
         if str(delAddTag.next_sibling).startswith("<add"):
             delAddTag = del_add(delAddTag)
-            delAddTag.unwrap()
             delAddTag.next_sibling.extract()
+            delAddTag.unwrap()
 
     # <add type=insert>
     for addInsert in para.find_all("add", attrs={"type": "insert"}):
@@ -168,8 +174,6 @@ def choice_supplied(choice):
 
 def header2latex(soup):
     header_str = ""
-    what_to_do = set()
-    what_to_do.add("all")
 
     #    Insert LaTeX doc header
     #    with open("begin.txt", "r", encoding="utf8") as f_begin:
@@ -180,9 +184,9 @@ def header2latex(soup):
 
     # Insert title
     title1 = soup.fileDesc.titleStmt.find("title", attrs={"type": "num"})
-    title1 = nor.normalize_text(title1, what_to_do).text
+    title1 = nor.normalize_text(title1, {"all"}).text
     title2 = soup.fileDesc.titleStmt.find("title", attrs={"type": "main"})
-    title2 = nor.normalize_text(title2, what_to_do).text
+    title2 = nor.normalize_text(title2, {"all"}).text
     header_str += "\n" + "\\section{" + title1 + " - " + title2 + "}" + "\n\n"
 
     # Insert manuscript description
@@ -198,7 +202,7 @@ def header2latex(soup):
     for elem in crit_intro:
         for p in elem.find_all("p"):
             if p.text.startswith("Photo copy:") and p.text != "Photo copy:":
-                p = nor.normalize_text(p, what_to_do).text
+                p = nor.normalize_text(p, {"all"}).text
                 header_str += p + "\n\n"
 
     # Insert publication
@@ -206,7 +210,7 @@ def header2latex(soup):
         if publication.text == "" or publication.text == " ":
             continue
         else:
-            publication = nor.normalize_text(publication, what_to_do)
+            publication = nor.normalize_text(publication, {"all"})
             header_str += "\\textsc{" + "Published: " + "}" + publication.text + "\n"
 
     # Insert translation
@@ -214,7 +218,7 @@ def header2latex(soup):
         if translation.text == "" or translation.text == " ":
             continue
         else:
-            translation = nor.normalize_text(translation, what_to_do)
+            translation = nor.normalize_text(translation, {"all"})
             header_str += translation.text + "\n"
 
     # Insert critIntro (Notes:). Runs only on each <p> in critIntro
@@ -222,7 +226,7 @@ def header2latex(soup):
     for elem in crit_intro:
         for p in elem.find_all("p"):
             if p.text.startswith("Notes:") and p.text != "Notes:":
-                p = nor.normalize_text(p, what_to_do).text
+                p = nor.normalize_text(p, {"all"}).text
                 header_str += p + "\n\n"
 
     header_str += "\n" + "\end{center}" + "\n"
@@ -231,12 +235,10 @@ def header2latex(soup):
 
 def text2latex(soup):
     text_latex = ""
-    what_to_do = set()
-    what_to_do.add("all")
 
     # Regesta: insert <floatingText> into latex string and then remove tag from soup object
     for p in soup.floatingText.find_all("p"):
-        p = nor.normalize_text(p, what_to_do).text
+        p = nor.normalize_text(p, {"all"}).text
         #    text_latex += "\n" + "\\begin{quote}" + "\n" + p + "\n" + "\end{quote}" + "\n"
         text_latex += "\n" + "\medskip{}" + "\n" + "\\noindent{}{\small\\textit{" + p + "}}"
     soup.floatingText.extract()
@@ -246,7 +248,7 @@ def text2latex(soup):
                   "\linenumincrement{5}" + "\n"
 
     for p in soup.body.div.find_all("p"):
-        p = nor.normalize_text(p, what_to_do)
+#        p = nor.normalize_text(p, {"all"})
         p = note_critic(p) # Change needed: method input must be <note> and not <p>
         p = paragraph(p)
         for q in p.find_all("quote"):
@@ -256,11 +258,11 @@ def text2latex(soup):
 
         # Letter verso
     for div in soup.find_all("div", attrs={"type": "verso"}):
-        verso_head = nor.normalize_text(div.head, what_to_do)
+        verso_head = nor.normalize_text(div.head, {"all"})
         text_latex += "\n" + "\pstart" + "\n" + "\\textit{" + verso_head.text + "}" + "\n" + "\pend" + "\n"
         for p in div.find_all("p"):
-            p = nor.normalize_text(p, what_to_do)
-            p = note_critic(p) # Change needed: method input must be <note> and not <p>
+            p = nor.normalize_text(p, {"all"})
+            p = note_critic(p) # Change needed: method input must be <note> and not <p> ??????
             p = paragraph(p)
             for q in p.find_all("quote"):
                 n = q.next_sibling
@@ -303,6 +305,7 @@ if __name__ == '__main__':
     for dirpath, subdirs, files in os.walk(dir_name_in):
         for x in files:
             if x.endswith("sz.xml"):
+                filelist_in.append(os.path.join(dirpath, x))
                 continue
             elif x.endswith(".xml"):
                 filelist_in.append(os.path.join(dirpath, x))

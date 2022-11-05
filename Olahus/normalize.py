@@ -61,7 +61,7 @@ def hi_rend(string):
                 hi.string = "\\textsc{" + hi_text + "}"
                 hi.unwrap()
             elif hi["rend"] == "super":
-                hi.string = "^" + hi_text
+                hi.string = "^" + hi_text # HIBA, csak egy betűt emel fel!
                 hi.unwrap()
             elif hi["rend"] == "bold":
                 hi.string = "\\textbf{" + hi_text + "}"
