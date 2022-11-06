@@ -6,11 +6,14 @@ def normalize_text(soup, what_to_do):
     soup_str = str(soup)
     soup_str = re.sub("[\n\t\s]+", " ", soup_str)
     soup_str = re.sub("\s+", " ", soup_str)
+    soup_str = re.sub("\[\d+.", "{[}", soup_str)
+    soup_str = re.sub("\d.\]", "{]}", soup_str)
+    soup_str = re.sub("_", "\\_", soup_str)
+    soup_str = re.sub("#", "\\#", soup_str)
 
     if "all" in what_to_do:
         soup_str = milestone_p(soup_str)
         soup_str = corresp_changes(soup_str)
-        soup_str = latex_escape(soup_str)
         soup_str = hi_rend(soup_str)
         soup_str = person_place_name(soup_str)
     else:
@@ -90,6 +93,6 @@ def person_place_name(string):
         name.string = "\index[pers]{" + name.text + "}" + name.text
         name.unwrap()
     for place in soup.find_all("placeName"):
-        place.string = "\index[pers]{" + place.text + "}" + place.text
+        place.string = "\index[place]{" + place.text + "}" + place.text
         place.unwrap()
     return str(soup)

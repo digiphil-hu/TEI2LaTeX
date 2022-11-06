@@ -1,17 +1,15 @@
 # This script converts letters encoded in XML to LaTeX files.
-# Author: gaborpalko
+# Author: https://github.com/gaborpalko
 # TODO TEI XML pre-processing: <?oxy...> comment removal
 # https://docs.google.com/document/d/1Jpkln-_kjH_ONQYcJlGn9BBv1clW4ANm/edit
 # https://docs.google.com/document/d/1EMKpwDzhvV7jF08vTfOqr2wIKCMFoJTaOfnaCcibajo/edit
-# https://btkmtahu.sharepoint.com/:w:/r/sites/DigiPhil2-TEI2LaTeX/Megosztott%20dokumentumok/TEI%202%20LaTeX/OLAHUS/
-# K%C3%B3dol%C3%A1s%20-%20ellen%C5%91rz%C3%A9s.docx?d=wcdc5d3d4c7684d0691978244dbefb41f&csf=1&web=1&e=2DVK4l
 # TODO Empty paragraph: \pstart \pend
 
 import time
 import os
 from bs4 import BeautifulSoup
 import re
-import normalize as nor
+import normalize as nr
 
 
 def last_word(txt):
@@ -47,8 +45,8 @@ def previous_word(tag):
 
 
 def note_critic(note):
-    # Input: normalized soup object preprocessed by the function: hi_rend()
-    note = nor.normalize_text(note, {"all"})
+
+    note = nr.normalize_text(note, {"all"})
     para_str = str(note)
     for note_cr_tag in note.find_all("note", attrs={"type": "critic"}):
         note_text = note_cr_tag.text
@@ -88,10 +86,24 @@ def quote(quot, note):
 
 def paragraph(para):
     # Input: <p> without normalization.
-    para = nor.normalize_text(para, {"all"})
+    para = nr.normalize_text(para, {"all"})
 
     for appTag in para.find_all("app"):
-        print(f"App: {appTag}")
+        if appTag.lem.find_next("del") is not None:
+            #  print("lem alatt del:", appTag.lem)
+            continue
+        elif appTag.rdg.find_next("del") is not None:
+            #  print("rdg alatt del:", appTag.rdg)
+            continue
+        else:
+            lem_text = appTag.lem.text
+            rdg_text = appTag.rdg.text
+            lem_wit = appTag.lem["wit"].split("#")[-1]
+            rdg_wit = appTag.rdg["wit"].split("#")[-1]
+            appTag.string = "\edtext{" + lem_text + "}{\Afootnote{corr. sec. " + rdg_wit + " ex " + lem_wit + \
+                            " " + rdg_text + "}}"
+            print(appTag.string)
+            appTag.unwrap()
 
     for delAlone in para.find_all("del"):
         if not str(delAlone.next_sibling).startswith("<add"):
@@ -184,9 +196,9 @@ def header2latex(soup):
 
     # Insert title
     title1 = soup.fileDesc.titleStmt.find("title", attrs={"type": "num"})
-    title1 = nor.normalize_text(title1, {"all"}).text
+    title1 = nr.normalize_text(title1, {"all"}).text
     title2 = soup.fileDesc.titleStmt.find("title", attrs={"type": "main"})
-    title2 = nor.normalize_text(title2, {"all"}).text
+    title2 = nr.normalize_text(title2, {"all"}).text
     header_str += "\n" + "\\section{" + title1 + " - " + title2 + "}" + "\n\n"
 
     # Insert manuscript description
@@ -202,7 +214,7 @@ def header2latex(soup):
     for elem in crit_intro:
         for p in elem.find_all("p"):
             if p.text.startswith("Photo copy:") and p.text != "Photo copy:":
-                p = nor.normalize_text(p, {"all"}).text
+                p = nr.normalize_text(p, {"all"}).text
                 header_str += p + "\n\n"
 
     # Insert publication
@@ -210,7 +222,7 @@ def header2latex(soup):
         if publication.text == "" or publication.text == " ":
             continue
         else:
-            publication = nor.normalize_text(publication, {"all"})
+            publication = nr.normalize_text(publication, {"all"})
             header_str += "\\textsc{" + "Published: " + "}" + publication.text + "\n"
 
     # Insert translation
@@ -218,7 +230,7 @@ def header2latex(soup):
         if translation.text == "" or translation.text == " ":
             continue
         else:
-            translation = nor.normalize_text(translation, {"all"})
+            translation = nr.normalize_text(translation, {"all"})
             header_str += translation.text + "\n"
 
     # Insert critIntro (Notes:). Runs only on each <p> in critIntro
@@ -226,7 +238,7 @@ def header2latex(soup):
     for elem in crit_intro:
         for p in elem.find_all("p"):
             if p.text.startswith("Notes:") and p.text != "Notes:":
-                p = nor.normalize_text(p, {"all"}).text
+                p = nr.normalize_text(p, {"all"}).text
                 header_str += p + "\n\n"
 
     header_str += "\n" + "\end{center}" + "\n"
@@ -238,7 +250,7 @@ def text2latex(soup):
 
     # Regesta: insert <floatingText> into latex string and then remove tag from soup object
     for p in soup.floatingText.find_all("p"):
-        p = nor.normalize_text(p, {"all"}).text
+        p = nr.normalize_text(p, {"all"}).text
         #    text_latex += "\n" + "\\begin{quote}" + "\n" + p + "\n" + "\end{quote}" + "\n"
         text_latex += "\n" + "\medskip{}" + "\n" + "\\noindent{}{\small\\textit{" + p + "}}"
     soup.floatingText.extract()
@@ -248,8 +260,7 @@ def text2latex(soup):
                   "\linenumincrement{5}" + "\n"
 
     for p in soup.body.div.find_all("p"):
-#        p = nor.normalize_text(p, {"all"})
-        p = note_critic(p) # Change needed: method input must be <note> and not <p>
+        p = note_critic(p) #  Change needed: method input must be <note> and not <p>
         p = paragraph(p)
         for q in p.find_all("quote"):
             n = q.next_sibling
@@ -258,10 +269,9 @@ def text2latex(soup):
 
         # Letter verso
     for div in soup.find_all("div", attrs={"type": "verso"}):
-        verso_head = nor.normalize_text(div.head, {"all"})
+        verso_head = nr.normalize_text(div.head, {"all"})
         text_latex += "\n" + "\pstart" + "\n" + "\\textit{" + verso_head.text + "}" + "\n" + "\pend" + "\n"
         for p in div.find_all("p"):
-            p = nor.normalize_text(p, {"all"})
             p = note_critic(p) # Change needed: method input must be <note> and not <p> ??????
             p = paragraph(p)
             for q in p.find_all("quote"):
@@ -271,7 +281,7 @@ def text2latex(soup):
 
     text_latex += "\n" + "\endnumbering" + "\n" + "\\selectlanguage{english}" + "\n"
     text_latex += "\n" + "\pagebreak" + "\n"
-    #    text_latex += "\n" + "\end{document}" + "\n"
+
     return text_latex
 
 
