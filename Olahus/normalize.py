@@ -2,16 +2,17 @@ import re
 from bs4 import BeautifulSoup
 
 
-def normalize_text(soup, what_to_do):
+def normalize_text(soup, what_to_do):  # re.sub helyett replace
     soup_str = str(soup)
     soup_str = re.sub("[\n\t\s]+", " ", soup_str)
     soup_str = re.sub("\s+", " ", soup_str)
-    soup_str = re.sub("\[\d+.", "{[}", soup_str)
-    soup_str = re.sub("\d.\]", "{]}", soup_str)
-    soup_str = re.sub("_", "\\_", soup_str)
-    soup_str = re.sub("#", "\\#", soup_str)
+    soup_str = soup_str.replace("[", "{[}")
+    soup_str = soup_str.replace("]", "{]}")
+    soup_str = soup_str.replace("_", "\\_")
+    soup_str = soup_str.replace("#", "\\#")
 
     if "all" in what_to_do:
+        # soup_str = latex_escape(soup_str)
         soup_str = milestone_p(soup_str)
         soup_str = corresp_changes(soup_str)
         soup_str = hi_rend(soup_str)
@@ -44,11 +45,15 @@ def corresp_changes(string):
 
 
 def latex_escape(string):
-    string = re.sub("\[", "{[}", string)
-    string = re.sub("\]", "{]}", string)
-    string = re.sub("_", "\\_", string)
-    string = re.sub("#", "\\#", string)
-    return string
+    soup = BeautifulSoup(string, "xml")
+    for tag in soup.find_all():
+        tag_text = tag.text
+        tag_text = tag_text.replace("[", "{[}")
+        tag_text = tag_text.replace("]", "{]}")
+        tag_text = tag_text.replace("_", "\\_")
+        tag_text = tag_text.replace("#", "\\#")
+        tag.string = tag_text
+    return str(soup)
 
 
 def hi_rend(string):
