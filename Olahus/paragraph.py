@@ -13,13 +13,14 @@ def paragraph(para):
 
     for app_tag in para.find_all("app"):
         lem_text = app_tag.lem.text
-        if lem_text == "" or lem_text == "\s"
+        if lem_text == "" or lem_text == " ":
+            lem_text = "UNKNOWN"
         rdg_text = app_tag.rdg.text
         lem_wit = app_tag.lem["wit"].split("#")[-1]
         rdg_wit = app_tag.rdg["wit"].split("#")[-1]
         if app_tag.rdg.string is None and app_tag.rdg.find_next("del") is None:
             app_tag.string = r"\edtext{" + lem_text + r"}{\Afootnote{\textit{ms. " + rdg_wit + ". om.}}}"
-            print(app_tag.string)
+            # print(app_tag.string)
             app_tag.unwrap()
             continue
         if app_tag.lem.find_next("del") is not None:
@@ -29,8 +30,7 @@ def paragraph(para):
             #  print("rdg alatt del:", appTag.rdg)
             continue
         else:
-            app_tag.string = r"\edtext{" + lem_text + r"}{\Afootnote{corr. sec. " + rdg_wit + " ex " + lem_wit + \
-                            " " + rdg_text + "}}"
+            app_tag.string = r"\edtext{" + lem_text + r"}{\Afootnote{\textit{ms. " + rdg_wit + ". " + rdg_text + "}}}"
             # print(appTag.string)
             app_tag.unwrap()
 
@@ -47,16 +47,18 @@ def paragraph(para):
             delAddTag.unwrap()
 
     # <add type=insert>
-    for addInsert in para.find_all("add", attrs={"type": "insert"}):
-        if len(addInsert.find_all("add")) == 0:
-            addInsert = add_insert(addInsert)
-            addInsert.unwrap()
-        else:
+
+    for _ in range(2):
+        for addInsert in para.find_all("add", attrs={"type": "insert"}):
+            if len(addInsert.find_all("add")) == 0:
+                addInsert = add_insert(addInsert)
+                addInsert.unwrap()
+            """else:
             addInsertChild = addInsert.add
             addInsertChild = add_insert(addInsertChild)
             addInsertChild.unwrap()
             add_insert(addInsert)
-            addInsert.unwrap()
+            addInsert.unwrap()"""
 
     # <choice> <supplied>
     for ch in para.find_all("choice"):
