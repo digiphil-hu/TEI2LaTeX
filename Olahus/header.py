@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-from normalize import normalize_text, latex_escape, latex_super
+from normalize import normalize_text, latex_escape
 
 
 def header2latex(soup):
@@ -10,8 +10,10 @@ def header2latex(soup):
     has_resp = ""
     if soup.find("relatedItem", attrs={"type": "responseTo"}) is not None:
         resp_to = soup.find("relatedItem", attrs={"type": "responseTo"}).bibl.ref.text
+        print(resp_to)
     if soup.find("relatedItem", attrs={"type": "hasResponse"}) is not None:
         has_resp = soup.find("relatedItem", attrs={"type": "hasResponse"}).bibl.ref.text
+        print(has_resp)
 
     # Insert title
     title_num = soup.fileDesc.titleStmt.find("title", attrs={"type": "num"})
@@ -20,7 +22,9 @@ def header2latex(soup):
     title_main = normalize_text(title_main, {"all"}).text
 
     header_str += r"\section*{\textsubscript{" + resp_to + "}" + title_num + r"\textsubscript{" + has_resp + r"}\\~\\" \
-                  + title_main + r"}\addcontentsline{toc}{section}{" + r".~" + title_main + "}" + "\n\n"
+                  + title_main + r"}\addcontentsline{toc}{section}{" + title_num + r".~" + title_main + "}" + "\n\n"
+
+    header_str += r"\begin{center}" + "\n\n"
 
     # Insert manuscript description
     institution = soup.institution.text
@@ -64,6 +68,5 @@ def header2latex(soup):
     header_str += r"\end{center}" + "\n\n"
 
     header_str = latex_escape(header_str)
-    header_str = latex_super(header_str)
 
     return header_str

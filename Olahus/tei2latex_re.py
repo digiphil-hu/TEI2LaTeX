@@ -7,7 +7,7 @@ import time
 import os
 from bs4 import BeautifulSoup
 import re
-from normalize import normalize_text, latex_escape, latex_super
+from normalize import normalize_text, latex_escape
 from paragraph import paragraph
 from header import header2latex
 
@@ -45,8 +45,8 @@ def text2latex(soup):
     # Regesta: insert <floatingText> into latex string and then remove tag from soup object
     for p in soup.floatingText.find_all("p"):
         p = normalize_text(p, {"all"}).text
-        #    text_latex += "\n" + "\\begin{quote}" + "\n" + p + "\n" + "\end{quote}" + "\n"
-        text_latex += "\n" + "\medskip{}" + "\n" + "\\noindent{}{\small\\textit{" + p + "}}"
+        # text_latex += "\n" + "\medskip{}" + "\n" + "\\noindent{}{\small\\textit{" + p + "}}"
+        text_latex += r"\noindent{}\textit{\small " + p + "}"
     soup.floatingText.extract()
 
     # Letter text
@@ -75,7 +75,6 @@ def text2latex(soup):
     text_latex += "\n" + "\pagebreak" + "\n\n"
 
     text_latex = latex_escape(text_latex)
-    text_latex = latex_super(text_latex)
 
     return text_latex
 

@@ -45,19 +45,6 @@ def latex_escape(string):
     string = string.replace("-", r"\-")
     return string
 
-def latex_super(string):
-    string = string.replace("^th", r"\textsuperscript{th}")
-    string = string.replace("^st", r"\textsuperscript{st}")
-    string = string.replace("^nd", r"\textsuperscript{nd}")
-    string = string.replace("^rd", r"\textsuperscript{rd}")
-    string = string.replace("^ten", r"\textsuperscript{ten}")
-    string = string.replace("^o", r"\textsuperscript{o}")
-    string = string.replace("^c", r"\textsuperscript{c}")
-    string = string.replace("^to", r"\textsuperscript{to}")
-    string = re.sub(r"(\^)(\d)", r"\\textsuperscript{\2}", string)
-
-
-    return string
 
 def hi_rend(string):
     # hi rend. As italic, super and small-cap may be under bold or italic, two cycles are needed.
@@ -72,7 +59,7 @@ def hi_rend(string):
                 hi.string = r"\textsc{" + hi_text + "}"
                 hi.unwrap()
             elif hi["rend"] == "super":
-                hi.string = "^" + hi_text  # HIBA, csak egy betűt emel fel!
+                hi.string = r"\textsuperscript{" + hi_text + "}"
                 hi.unwrap()
             elif hi["rend"] == "bold":
                 hi.string = r"\textbf{" + hi_text + "}"
