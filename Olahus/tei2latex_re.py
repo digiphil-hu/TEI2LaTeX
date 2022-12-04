@@ -7,7 +7,7 @@ import time
 import os
 from bs4 import BeautifulSoup
 import re
-from normalize import normalize_text
+from normalize import normalize_text, latex_escape, latex_super
 from paragraph import paragraph
 from header import header2latex
 
@@ -73,6 +73,9 @@ def text2latex(soup):
 
     text_latex += "\n" + "\endnumbering" + "\n\n" + "\\selectlanguage{english}" + "\n"
     text_latex += "\n" + "\pagebreak" + "\n\n"
+
+    text_latex = latex_escape(text_latex)
+    text_latex = latex_super(text_latex)
 
     return text_latex
 

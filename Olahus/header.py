@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-from normalize import normalize_text
+from normalize import normalize_text, latex_escape, latex_super
 
 
 def header2latex(soup):
@@ -62,4 +62,8 @@ def header2latex(soup):
                 header_str += p + "\n\n"
 
     header_str += r"\end{center}" + "\n\n"
+
+    header_str = latex_escape(header_str)
+    header_str = latex_super(header_str)
+
     return header_str

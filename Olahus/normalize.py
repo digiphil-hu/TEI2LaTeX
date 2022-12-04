@@ -8,11 +8,8 @@ def normalize_text(soup, what_to_do):  # re.sub helyett replace
     soup_str = re.sub("\s+", " ", soup_str)
     soup_str = soup_str.replace("[", "{[}")
     soup_str = soup_str.replace("]", "{]}")
-    soup_str = soup_str.replace("_", "\\_")
-    soup_str = soup_str.replace("#", "\\#")
 
     if "all" in what_to_do:
-        # soup_str = latex_escape(soup_str)
         soup_str = milestone_p(soup_str)
         soup_str = corresp_changes(soup_str)
         soup_str = hi_rend(soup_str)
@@ -22,8 +19,6 @@ def normalize_text(soup, what_to_do):  # re.sub helyett replace
             soup_str = milestone_p(soup_str)
         if "corresp" in what_to_do:
             soup_str = corresp_changes(soup_str)
-        if "escape" in what_to_do:
-            soup_str = latex_escape(soup_str)
         if "hi" in what_to_do:
             soup_str = hi_rend(soup_str)
         if "names" in what_to_do:
@@ -45,16 +40,24 @@ def corresp_changes(string):
 
 
 def latex_escape(string):
-    soup = BeautifulSoup(string, "xml")
-    for tag in soup.find_all():
-        tag_text = tag.text
-        tag_text = tag_text.replace("[", "{[}")
-        tag_text = tag_text.replace("]", "{]}")
-        tag_text = tag_text.replace("_", "\\_")
-        tag_text = tag_text.replace("#", "\\#")
-        tag.string = tag_text
-    return str(soup)
+    string = string.replace("_", r"\_")
+    string = string.replace("#", r"\#")
+    string = string.replace("-", r"\-")
+    return string
 
+def latex_super(string):
+    string = string.replace("^th", r"\textsuperscript{th}")
+    string = string.replace("^st", r"\textsuperscript{st}")
+    string = string.replace("^nd", r"\textsuperscript{nd}")
+    string = string.replace("^rd", r"\textsuperscript{rd}")
+    string = string.replace("^ten", r"\textsuperscript{ten}")
+    string = string.replace("^o", r"\textsuperscript{o}")
+    string = string.replace("^c", r"\textsuperscript{c}")
+    string = string.replace("^to", r"\textsuperscript{to}")
+    string = re.sub(r"(\^)(\d)", r"\\textsuperscript{\2}", string)
+
+
+    return string
 
 def hi_rend(string):
     # hi rend. As italic, super and small-cap may be under bold or italic, two cycles are needed.
@@ -63,16 +66,19 @@ def hi_rend(string):
         if len(hi.find_all("hi")) == 0:  # If there are no <hi> under <hi>
             hi_text = hi.text
             if hi["rend"] == "italic":
-                hi.string = "\\textit{" + hi_text + "}"
+                hi.string = r"\textit{" + hi_text + "}"
                 hi.unwrap()
             elif hi["rend"] == "smallcap":
-                hi.string = "\\textsc{" + hi_text + "}"
+                hi.string = r"\textsc{" + hi_text + "}"
                 hi.unwrap()
             elif hi["rend"] == "super":
-                hi.string = "^" + hi_text # HIBA, csak egy betűt emel fel!
+                hi.string = "^" + hi_text  # HIBA, csak egy betűt emel fel!
                 hi.unwrap()
             elif hi["rend"] == "bold":
-                hi.string = "\\textbf{" + hi_text + "}"
+                hi.string = r"\textbf{" + hi_text + "}"
+                hi.unwrap()
+            elif hi["rend"] == "expanded":
+                hi.string = r"\textbf{" + hi_text + "}"
                 hi.unwrap()
             else:
                 print("<hi> error:", hi)
@@ -82,9 +88,11 @@ def hi_rend(string):
         hi_text = hi.text
         if len(hi.find_all("hi")) == 0:
             if hi["rend"] == "bold":
-                hi.string = "\\textbf{" + hi_text + "}"
+                hi.string = r"\textbf{" + hi_text + "}"
             elif hi["rend"] == "italic":
-                hi.string = "\\textit{" + hi_text + "}"
+                hi.string = r"\textit{" + hi_text + "}"
+            elif hi["rend"] == "expanded":
+                hi.string = r"\textbf{" + hi_text + "}"
             else:
                 print("<hi><hi> error:", hi)
             hi.unwrap()
