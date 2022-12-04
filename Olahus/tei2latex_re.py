@@ -78,7 +78,7 @@ def text2latex(soup):
 
 
 def main(xml, latex):
-    print(xml.lstrip("/home/elte-dh-celestra/PycharmProjects/TEI2LaTeX/Olahus/XML"))
+    print(xml.lstrip("/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML"))
     with open(xml, "r", encoding="utf8") as f_xml:
         sp = BeautifulSoup(f_xml, "xml")
 
@@ -101,8 +101,8 @@ if __name__ == '__main__':
         with open("begin.txt", "r", encoding="utf8") as f_r:
             start = f_r.read()
             f_w.write(start)
-    dir_name_in = "/home/elte-dh-celestra/PycharmProjects/TEI2LaTeX/Olahus/XML"
-    dir_name_out = "/home/elte-dh-celestra/PycharmProjects/TEI2LaTeX/Olahus/LaTeX"
+    dir_name_in = "/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML"
+    dir_name_out = "Olahus/LaTeX"
     filelist_in = []
     for dirpath, subdirs, files in os.walk(dir_name_in):
         for x in files:
