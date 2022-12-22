@@ -5,15 +5,7 @@ from normalize import normalize_text, latex_escape
 def header2latex(soup):
     header_str = ""
 
-    # Response to, has response
-    resp_to = ""
-    has_resp = ""
-    if soup.find("relatedItem", attrs={"type": "responseTo"}) is not None:
-        resp_to = soup.find("relatedItem", attrs={"type": "responseTo"}).bibl.ref.text
-        print(resp_to)
-    if soup.find("relatedItem", attrs={"type": "hasResponse"}) is not None:
-        has_resp = soup.find("relatedItem", attrs={"type": "hasResponse"}).bibl.ref.text
-        print(has_resp)
+    header_str += r"\begin{center}" + "\n\n"
 
     # Insert title
     title_num = soup.fileDesc.titleStmt.find("title", attrs={"type": "num"})
@@ -21,10 +13,17 @@ def header2latex(soup):
     title_main = soup.fileDesc.titleStmt.find("title", attrs={"type": "main"})
     title_main = normalize_text(title_main, {"all"}).text
 
-    header_str += r"\section*{\textsubscript{" + resp_to + "}" + title_num + r"\textsubscript{" + has_resp + r"}\\~\\" \
-                  + title_main + r"}\addcontentsline{toc}{section}{" + title_num + r".~" + title_main + "}" + "\n\n"
+    # Response to, has response
+    resp_to = ""
+    has_resp = ""
+    if soup.find("relatedItem", attrs={"type": "responseTo"}) is not None:
+        resp_to = soup.find("relatedItem", attrs={"type": "responseTo"}).bibl.ref.text
+    if soup.find("relatedItem", attrs={"type": "hasResponse"}) is not None:
+        has_resp = soup.find("relatedItem", attrs={"type": "hasResponse"}).bibl.ref.text
 
-    header_str += r"\begin{center}" + "\n\n"
+    header_str += r"\section*{\textsubscript{" + resp_to + "}" + title_num + r"\textsubscript{" + has_resp + r"}\\~\\" \
+                  + title_main + r"}\addcontentsline{toc}{section}{" + title_num + r".~" + title_main + "}" + "\n"
+    header_str += r"\renewcommand{\thefootnoteA}{\arabic{footnoteA}}\setcounter{footnoteA}{0}" + "\n\n"
 
     # Insert manuscript description
     institution = soup.institution.text
@@ -54,8 +53,9 @@ def header2latex(soup):
         if translation.text == "" or translation.text == " ":
             continue
         else:
-            translation = normalize_text(translation, {"all"})
-            header_str += translation.text + "\n\n"
+            for p in translation:
+                p = normalize_text(p, {"all"})
+                header_str += p.text + "\n"
 
     # Insert critIntro (Notes:). Runs only on each <p> in critIntro
     crit_intro = soup.notesStmt.find_all("note", attrs={"type": "critIntro"})

@@ -1,4 +1,5 @@
 \documentclass[11pt,a4paper]{book}
+%%%%%% fontos + xelatex + verbatim%%%%%%
 \usepackage[LUC,T1]{fontenc}
 \usepackage{fontspec}
 \usepackage{xunicode}
@@ -17,14 +18,8 @@
 
 \usepackage[parapparatus, series={A}]{reledmac}
 \fnpos{critical-familiar}
-
-\makeatletter
-\renewcommand*{\bodyfootmarkA}{%
-\hbox{\textsuperscript{\@nameuse{@thefnmarkA}}}}
-\makeatother
-
-\makeindex[name=pers,title=Index nominorum]
-\makeindex[name=place,title=Index locorum]
+\Xarrangement[A]{paragraph}
+\arrangementX[A]{paragraph}
 
 \begin{document}
 
