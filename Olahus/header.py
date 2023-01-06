@@ -69,4 +69,4 @@ def header2latex(soup):
 
     header_str = latex_escape(header_str)
 
-    return header_str
+    return header_str, title_num

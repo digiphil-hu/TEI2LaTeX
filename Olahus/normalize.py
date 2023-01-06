@@ -90,9 +90,9 @@ def hi_rend(string):
 def person_place_name(string):
     soup = BeautifulSoup(string, "xml")
     for name in soup.find_all("persName"):
-        name.string = "\index[pers]{" + name.text + "}" + name.text
+        name.string = "\edindex[pers]{" + name.text + "}" + name.text
         name.unwrap()
     for place in soup.find_all("placeName"):
-        place.string = "\index[place]{" + place.text + "}" + place.text
+        place.string = "\edindex[place]{" + place.text + "}" + place.text
         place.unwrap()
     return str(soup)

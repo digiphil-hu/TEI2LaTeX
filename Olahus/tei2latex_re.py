@@ -20,10 +20,10 @@ def quote(quot, note):
         note = BeautifulSoup("<note\>", "xml")
     q_text = quot.text
     q_text = q_text.replace("{[}BEKEZDÉSHATÁR{]}", "").replace("OLDALTÖRÉS", "")
-#   print(q_text)
+    #   print(q_text)
     q_text = re.sub("\\\edtext.+}}", "", q_text).replace("  ", " ").rstrip("., ").lstrip(" ")
     q_text = re.sub("\\\index\[\w+\]{\w+}", "", q_text)
-#   print(q_text)
+    #   print(q_text)
     q_list = q_text.split(" ")
     if len(q_list) > 2:
         firstword = q_list[0].rstrip(".,")
@@ -39,42 +39,61 @@ def quote(quot, note):
     note.extract()
 
 
-def text2latex(soup):
+def text2latex(soup, num):
     text_latex = ""
 
     # Regesta: insert <floatingText> into latex string and then remove tag from soup object
-    for p in soup.floatingText.find_all("p"):
-        p = normalize_text(p, {"all"}).text
-        # text_latex += "\n" + "\medskip{}" + "\n" + "\\noindent{}{\small\\textit{" + p + "}}"
-        text_latex += r"\noindent{}\textit{\small " + p + "}"
+    for float_p in soup.floatingText.find_all("p"):
+        float_p = normalize_text(float_p, {"all"}).text
+        text_latex += r"\noindent{}\textit{\small " + float_p + "}"
     soup.floatingText.extract()
 
     text_latex += "\n\n" + r"\medskip{}" + "\n"
 
     # Letter text
-    text_latex += "\n" + "\\selectlanguage{latin}" + "\n" + "\\beginnumbering" + "\n" + "\\firstlinenum{5}" + "\n" + \
-                  "\linenumincrement{5}" + "\n"
+    text_latex += "\n" \
+                  + r"\selectlanguage{latin}" + "\n" \
+                  + r"\makeatletter" + "\n" \
+                  + r"\renewcommand*{\footfootmarkA}{" + num + r"\,\textsuperscript{\@nameuse{@thefnmarkA}\,}}" \
+                  + r"\makeatother" + "\n" \
+                  + r"\beginnumbering" + "\n" \
+                  + r"\firstlinenum{5}" + "\n" \
+                  + r"\linenumincrement{5}" + "\n" \
+                  + r"\Xtxtbeforenumber[A]{" + num + ",}" + "\n"
 
+    # Paragraph
     for p in soup.body.div.find_all("p"):
         p = paragraph(p)
         for q in p.find_all("quote"):
             n = q.next_sibling
             quote(q, n)
-        text_latex += "\n" + "\pstart" + "\n" + p.text + "\n" + "\pend" + "\n"
+        text_latex += "\n" \
+                      + r"\pstart" + "\n" \
+                      + p.text + "\n" \
+                      + r"\pend" + "\n"
 
         # Letter verso
     for div in soup.find_all("div", attrs={"type": "verso"}):
         verso_head = normalize_text(div.head, {"all"})
-        text_latex += "\n" + "\pstart" + "\n" + "\\textit{" + verso_head.text + "}" + "\n" + "\pend" + "\n"
+        text_latex += "\n" \
+                      + r"\pstart" + "\n" \
+                      + r"\textit{" + verso_head.text + "}" + "\n" \
+                      + r"\pend" + "\n"
+
         for p in div.find_all("p"):
             p = paragraph(p)
             for q in p.find_all("quote"):
                 n = q.next_sibling
                 quote(q, n)
-            text_latex += "\n" + "\pstart" + "\n" + p.text + "\n" + "\pend" + "\n"
+            text_latex += "\n" \
+                          + r"\pstart" + "\n" \
+                          + p.text + "\n" \
+                          + r"\pend" + "\n"
 
-    text_latex += "\n" + "\endnumbering" + "\n\n" + "\\selectlanguage{english}" + "\n"
-    text_latex += "\n" + "\pagebreak" + "\n\n"
+    text_latex += "\n" \
+                  + r"\endnumbering" + "\n\n" \
+                  + r"\selectlanguage{english}" + "\n"
+    text_latex += "\n" + r"\pagebreak" + "\n\n"
 
     text_latex = latex_escape(text_latex)
 
@@ -93,10 +112,11 @@ def main(xml, latex):
         with open("latex2.tex", "a", encoding="utf8") as f_latex:
             # Write header
             h = header2latex(sp.teiHeader)
-            f_latex.write(h)
+            f_latex.write(h[0])
+            title_num = h[1]
 
             # Write text
-            t = text2latex(sp.find("text"))
+            t = text2latex(sp.find("text"), title_num)
             f_latex.write(t)
 
 
@@ -122,6 +142,6 @@ if __name__ == '__main__':
         main(i, out)
     with open("latex2.tex", "a", encoding="utf8") as f_w:
         # End
-        f_w.write("\n" + "\\end{document}")
+        f_w.write(r"\end{document}")
     end = time.time()
     print(end - begin)
