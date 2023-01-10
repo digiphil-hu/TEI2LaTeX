@@ -8,6 +8,7 @@ def normalize_text(soup, what_to_do):  # re.sub helyett replace
     soup_str = re.sub("\s+", " ", soup_str)
     soup_str = soup_str.replace("[", "{[}")
     soup_str = soup_str.replace("]", "{]}")
+    soup_str = soup_str.replace("-", r"\-")
 
     if "all" in what_to_do:
         soup_str = milestone_p(soup_str)
@@ -42,7 +43,6 @@ def corresp_changes(string):
 def latex_escape(string):
     string = string.replace("_", r"\_")
     string = string.replace("#", r"\#")
-    string = string.replace("-", r"\-")
     return string
 
 

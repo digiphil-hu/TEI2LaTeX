@@ -7,13 +7,21 @@ def header2latex(soup):
 
     header_str += r"\begin{center}" + "\n\n"
 
-    # Insert title
+    # Title, letter metadata
     title_num = soup.fileDesc.titleStmt.find("title", attrs={"type": "num"})
     title_num = normalize_text(title_num, {"all"}).text
     title_main = soup.fileDesc.titleStmt.find("title", attrs={"type": "main"})
     title_main = normalize_text(title_main, {"all"}).text
+    sent = soup.find("correspAction", attrs={"type": "sent"}).persName.text
+    if sent == "":
+        sent = "Unknown"
+    recieved = soup.find("correspAction", attrs={"type": "recieved"}).persName.text
+    if recieved == "":
+        recieved == "Unwnown"
+    date_of_creation = soup.creation.date.text
+    place_of_creation = soup.creation.placeName.text
 
-    # Response to, has response
+    # Title including response to, has response
     resp_to = ""
     has_resp = ""
     if soup.find("relatedItem", attrs={"type": "responseTo"}) is not None:
@@ -21,8 +29,12 @@ def header2latex(soup):
     if soup.find("relatedItem", attrs={"type": "hasResponse"}) is not None:
         has_resp = soup.find("relatedItem", attrs={"type": "hasResponse"}).bibl.ref.text
 
-    header_str += r"\section*{\textsubscript{" + resp_to + "}" + title_num + r"\textsubscript{" + has_resp + r"}\\~\\" \
-                  + title_main + r"}\addcontentsline{toc}{section}{" + title_num + r".~" + title_main + "}" + "\n"
+    header_str += r"\section*{\textsubscript{" + resp_to + "}" \
+                  + r"\textbf" + title_num + "}"\
+                  + r"\textsubscript{" + has_resp + r"}\\~\vspace{-1em}\\" \
+                  + sent + " to " + recieved + r"\\~\vspace{-1.4em}\\" + place_of_creation + ", " + date_of_creation\
+                  + r"\addcontentsline{toc}{section}{" \
+                  + title_num + r".~" + title_main + "}" + "\n"
     header_str += r"\renewcommand{\thefootnoteA}{\arabic{footnoteA}}\setcounter{footnoteA}{0}" + "\n\n"
 
     # Insert manuscript description
