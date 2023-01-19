@@ -6,11 +6,11 @@ def normalize_text(soup, what_to_do):  # re.sub helyett replace
     soup_str = str(soup)
     soup_str = re.sub("[\n\t\s]+", " ", soup_str)
     soup_str = re.sub("\s+", " ", soup_str)
-    soup_str = soup_str.replace("[", "{[}")
-    soup_str = soup_str.replace("]", "{]}")
-    soup_str = soup_str.replace("-", r"\-")
 
     if "all" in what_to_do:
+        soup_str = soup_str.replace("[", "{[}")
+        soup_str = soup_str.replace("]", "{]}")
+        soup_str = soup_str.replace("-", r"\-")
         soup_str = milestone_p(soup_str)
         soup_str = corresp_changes(soup_str)
         soup_str = hi_rend(soup_str)

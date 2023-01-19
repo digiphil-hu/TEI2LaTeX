@@ -31,13 +31,14 @@
 \renewcommand{\headruleskip}{0pt}
 \fancyfoot[LE,RO]{\thepage}
 
-\usepackage[parapparatus, series={A}]{reledmac}
+\usepackage[parapparatus, series={A, B}]{reledmac}
 \fnpos{critical-familiar}
 \makeatletter
 \renewcommand*{\bodyfootmarkA}{%
 \hbox{\textsuperscript{\@nameuse{@thefnmarkA}}}}
 \makeatother
 \Xarrangement[A]{paragraph}
+\Xarrangement[B]{paragraph}
 \arrangementX[A]{paragraph}
 
 \makeindex[name=pers,title=Index nominorum]

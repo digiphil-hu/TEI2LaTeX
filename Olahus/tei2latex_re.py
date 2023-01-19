@@ -6,37 +6,11 @@
 import time
 import os
 from bs4 import BeautifulSoup
-import re
+
+from Olahus.paragraph import quote
 from normalize import normalize_text, latex_escape
 from paragraph import paragraph
 from header import header2latex
-
-
-def quote(quot, note):
-    # <quote><note type="quote">
-    # Milestone p missing!
-    # Are they really "words"?
-    if note is None:
-        note = BeautifulSoup("<note\>", "xml")
-    q_text = quot.text
-    q_text = q_text.replace("{[}BEKEZDÉSHATÁR{]}", "").replace("OLDALTÖRÉS", "")
-    #   print(q_text)
-    q_text = re.sub("\\\edtext.+}}", "", q_text).replace("  ", " ").rstrip("., ").lstrip(" ")
-    q_text = re.sub("\\\index\[\w+\]{\w+}", "", q_text)
-    #   print(q_text)
-    q_list = q_text.split(" ")
-    if len(q_list) > 2:
-        firstword = q_list[0].rstrip(".,")
-        lastword = q_list[-1].rstrip(".,")
-        #        print("Quote első és utsó szavai: ", firstword, "------", lastword)
-        q_keyword = firstword + r"\ldots{} " + lastword
-    if len(q_list) <= 2:
-        q_keyword = q_text.rstrip(".,")
-    #        print("Rövid quote: ", q_keyword)
-    n_new = r"\edtext{" + q_text + r"}{\lemma{" + q_keyword + r"}\Afootnote{" + note.text + "}}"
-    quot.string = n_new
-    quot.unwrap()
-    note.extract()
 
 
 def text2latex(soup, num):
@@ -59,14 +33,12 @@ def text2latex(soup, num):
                   + r"\beginnumbering" + "\n" \
                   + r"\firstlinenum{5}" + "\n" \
                   + r"\linenumincrement{5}" + "\n" \
-                  + r"\Xtxtbeforenumber[A]{" + num + ",}" + "\n"
+                  + r"\Xtxtbeforenumber[A]{" + num + ",}" + "\n" \
+                  + r"\Xtxtbeforenumber[B]{" + num + ",}" + "\n"
 
     # Paragraph
     for p in soup.body.div.find_all("p"):
         p = paragraph(p)
-        for q in p.find_all("quote"):
-            n = q.next_sibling
-            quote(q, n)
         text_latex += "\n" \
                       + r"\pstart" + "\n" \
                       + p.text + "\n" \
@@ -82,9 +54,6 @@ def text2latex(soup, num):
 
         for p in div.find_all("p"):
             p = paragraph(p)
-            for q in p.find_all("quote"):
-                n = q.next_sibling
-                quote(q, n)
             text_latex += "\n" \
                           + r"\pstart" + "\n" \
                           + p.text + "\n" \

@@ -30,10 +30,10 @@ def header2latex(soup):
         has_resp = soup.find("relatedItem", attrs={"type": "hasResponse"}).bibl.ref.text
 
     header_str += r"\section*{\textsubscript{" + resp_to + "}" \
-                  + r"\textbf" + title_num + "}"\
+                  + r"\textbf{" + title_num + "}"\
                   + r"\textsubscript{" + has_resp + r"}\\~\vspace{-1em}\\" \
                   + sent + " to " + recieved + r"\\~\vspace{-1.4em}\\" + place_of_creation + ", " + date_of_creation\
-                  + r"\addcontentsline{toc}{section}{" \
+                  + r"}\addcontentsline{toc}{section}{" \
                   + title_num + r".~" + title_main + "}" + "\n"
     header_str += r"\renewcommand{\thefootnoteA}{\arabic{footnoteA}}\setcounter{footnoteA}{0}" + "\n\n"
 
