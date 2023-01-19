@@ -7,7 +7,6 @@ import time
 import os
 from bs4 import BeautifulSoup
 
-from Olahus.paragraph import quote
 from normalize import normalize_text, latex_escape
 from paragraph import paragraph
 from header import header2latex

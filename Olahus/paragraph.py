@@ -5,12 +5,7 @@ import re
 
 
 def paragraph(para):
-
-    # Quote under p
-    # for q in para.find_all("quote"):
-    #    n = q.next_sibling
-    #    quote(q, n)
-
+    # Quote keywords extraction
     if para.quote is not None:
         q = normalize_text(para.quote, {})
         if q.find("del") is not None:
@@ -26,7 +21,6 @@ def paragraph(para):
             q_keyword = firstword + r"\ldots{} " + lastword
         if len(q_list) <= 2:
             q_keyword = q_text.rstrip(".,")
-        # print(q_keyword)
 
     para = normalize_text(para, {"all"})
 
@@ -72,7 +66,6 @@ def paragraph(para):
             delAddTag.unwrap()
 
     # <add type=insert>
-
     for _ in range(2):
         for addInsert in para.find_all("add", attrs={"type": "insert"}):
             if len(addInsert.find_all("add")) == 0:
@@ -105,40 +98,8 @@ def paragraph(para):
         quot.string = n_new
         quot.unwrap()
         n.extract()
+
     return para
-
-
-def quote(quot, note):
-    # <quote><note type="quote">
-    # Milestone p missing!
-    # Are they really "words"?
-    quot = normalize_text(quot, "all")
-
-    if note is None:
-        note = BeautifulSoup(r"<note\>", "xml")
-    q_text = quot.text
-    q_text = q_text.replace("{[}BEKEZDÉSHATÁR{]}", "").replace("OLDALTÖRÉS", "")
-
-    q_text = re.sub("\\\edtext.+}}", "", q_text).replace("  ", " ").rstrip("., ").lstrip(" ")
-    q_text = re.sub("\\\index\[\w+\]{\w+}", "", q_text)
-
-    #  Shorten quote
-    q_list = q_text.split(" ")
-    if len(q_list) > 2:
-        firstword = q_list[0].rstrip(".,")
-        lastword = q_list[-1].rstrip(".,")
-        q_keyword = firstword + r"\ldots{} " + lastword
-    if len(q_list) <= 2:
-        q_keyword = q_text.rstrip(".,")
-    print(q_keyword)
-
-    # Footnote from quote
-    n_new = r"\edtext{" + q_text \
-            + r"}{\lemma{" + q_keyword \
-            + r"}\Afootnote{" + note.text + "}}"
-    quot.string = n_new
-    quot.unwrap()
-    note.extract()
 
 
 def del_tag(del_tag):
@@ -189,7 +150,7 @@ def choice_supplied(choice):
     return choice
 
 
-def last_word(txt):
+def last_word(txt): # TODO Relocate to a place where input text is not yet normalized to avoid removing elements
     txt = re.sub(".text[si][ct]{([^}]+)}", "\\0", txt)
     txt = re.sub(".footnoteA{[^}]+}", " ", txt)
     txt = re.sub("{\[}\d+\.{\]}", "", txt)
