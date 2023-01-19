@@ -93,6 +93,8 @@ def paragraph(para):
     # <quot>
     if para.quote is not None:
         n = para.quote.next_sibling
+        if str(n).startswith(r"<note type=") is False:
+            print("ERROR: Missing <note> after <quote>")
         quot = para.quote
         quot_text = quot.text
 

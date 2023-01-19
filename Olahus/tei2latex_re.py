@@ -75,8 +75,8 @@ def main(xml, latex):
         sp = BeautifulSoup(f_xml, "xml")
 
         # Delete <ref> tags
-        # for elem in sp.find_all("ref"):
-        #    elem.extract()
+        for elem in sp.body.find_all("ref"):
+            elem.extract()
 
         with open("latex2.tex", "a", encoding="utf8") as f_latex:
             # Write header
