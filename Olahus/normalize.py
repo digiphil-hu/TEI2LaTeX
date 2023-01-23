@@ -31,11 +31,12 @@ def normalize_text(soup, what_to_do):  # re.sub helyett replace
 
 def milestone_p(string):
     string = re.sub("<milestone unit=\"p\"/>", "{[}BEKEZDÉSHATÁR{]}", string)
+    string = string.replace(r"{[}BEKEZDÉSHATÁR{]}", "\n\\pend\n\n\\pstart\n")
     return string
 
 
 def corresp_changes(string):
-    string = re.sub("corresp=\"Olahus\"", "corresp=\"O.\"", string)
+    string = re.sub("corresp=\"Olahus\"", "corresp=\"O\"", string)
     string = re.sub("corresp=\"editor\"", "corresp=\" \"", string)  # <del corresp="editor">
     return string
 

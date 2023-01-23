@@ -93,7 +93,7 @@ if __name__ == '__main__':
         with open("begin.txt", "r", encoding="utf8") as f_r:
             start = f_r.read()
             f_w.write(start)
-    dir_name_in = "/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML2"
+    dir_name_in = "/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML"
     dir_name_out = "Olahus/LaTeX"
     filelist_in = []
     for dirpath, subdirs, files in os.walk(dir_name_in):
