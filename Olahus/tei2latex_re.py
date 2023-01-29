@@ -6,7 +6,7 @@
 import time
 import os
 from bs4 import BeautifulSoup
-
+import re
 from normalize import normalize_text, latex_escape
 from paragraph import paragraph
 from header import header2latex
@@ -72,6 +72,12 @@ def main(xml, latex):
     print(xml.lstrip("/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML"))
     with open(xml, "r", encoding="utf8") as f_xml:
         sp = BeautifulSoup(f_xml, "xml")
+
+        # Normalize
+        sp = str(sp)
+        sp = re.sub(r"[\n\t]+", "", sp)
+        sp = re.sub(r"\s+", " ", sp)
+        sp = BeautifulSoup(sp, "xml")
 
         # Delete <ref> tags
         for elem in sp.body.find_all("ref"):

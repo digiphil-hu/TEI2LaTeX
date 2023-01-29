@@ -4,8 +4,6 @@ from bs4 import BeautifulSoup
 
 def normalize_text(soup, what_to_do):  # re.sub helyett replace
     soup_str = str(soup)
-    soup_str = re.sub("[\n\t]+", "", soup_str)
-    soup_str = re.sub("\s+", " ", soup_str)
 
     if "all" in what_to_do:
         soup_str = soup_str.replace("[", "{[}")
@@ -15,15 +13,24 @@ def normalize_text(soup, what_to_do):  # re.sub helyett replace
         soup_str = corresp_changes(soup_str)
         soup_str = hi_rend(soup_str)
         soup_str = person_place_name(soup_str)
-    else:
-        if "milestone" in what_to_do:
-            soup_str = milestone_p(soup_str)
-        if "corresp" in what_to_do:
-            soup_str = corresp_changes(soup_str)
-        if "hi" in what_to_do:
-            soup_str = hi_rend(soup_str)
-        if "names" in what_to_do:
-            soup_str = person_place_name(soup_str)
+
+    if "header" in what_to_do:
+        soup_str = soup_str.replace("[", "{[}")
+        soup_str = soup_str.replace("]", "{]}")
+        soup_str = soup_str.replace("(", "{(}")
+        soup_str = soup_str.replace(")", "{)}")
+        soup_str = soup_str.replace("-", r"\-")
+        soup_str = hi_rend(soup_str)
+
+    # else:
+    #     if "milestone" in what_to_do:
+    #         soup_str = milestone_p(soup_str)
+    #     if "corresp" in what_to_do:
+    #         soup_str = corresp_changes(soup_str)
+    #     if "hi" in what_to_do:
+    #         soup_str = hi_rend(soup_str)
+    #     if "names" in what_to_do:
+    #         soup_str = person_place_name(soup_str)
 
     soup = BeautifulSoup(soup_str, "xml")
     return soup
