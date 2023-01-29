@@ -6,8 +6,9 @@ import re
 
 def paragraph(para):
     # Quote keywords extraction
-    if para.quote is not None:
-        q = normalize_text(para.quote, {})
+    q_keyword_dict = {}
+    for index, quote_keyword in enumerate(para.find_all("quote")):
+        q = normalize_text(quote_keyword, {})
         if q.find("del") is not None:
             q.find("del").extract()
         if q.find("orig") is not None:
@@ -19,8 +20,10 @@ def paragraph(para):
             firstword = q_list[0].rstrip(".,?!")
             lastword = q_list[-1].rstrip(".,?!")
             q_keyword = firstword + r"\ldots{} " + lastword
+            q_keyword_dict[index] = q_keyword
         if len(q_list) <= 2:
             q_keyword = q_text.rstrip(".,")
+            q_keyword_dict[index] = q_keyword
 
     para = normalize_text(para, {"all"})
 
@@ -84,20 +87,19 @@ def paragraph(para):
         ch.unwrap()
 
     # <quot>
-    if para.quote is not None:
-        n = para.quote.next_sibling
-        if str(n).startswith(r"<note type=") is False:
+    for index, quote_actual in enumerate(para.find_all("quote")):
+        quote_note = para.quote.next_sibling
+        if str(quote_note).startswith(r'''<note type="quote"''') is False:
             print("ERROR: Missing <note> after <quote>")
-        quot = para.quote
-        quot_text = quot.text
+        quote_text = quote_actual.text
 
         # Footnote from quote
-        n_new = r"\edtext{" + quot_text \
-                + r"}{\lemma{" + q_keyword \
-                + r"}\Bfootnote{" + n.text + "}}"
-        quot.string = n_new
-        quot.unwrap()
-        n.extract()
+        note_new = r"\edtext{" + quote_text \
+                   + r"}{\lemma{" + q_keyword_dict[index] \
+                   + r"}\Bfootnote{" + quote_note.text + "}}"
+        quote_actual.string = note_new
+        quote_actual.unwrap()
+        quote_note.extract()
 
     return para
 
@@ -150,7 +152,7 @@ def choice_supplied(choice):
     return choice
 
 
-def last_word(txt): # TODO Relocate to a place where input text is not yet normalized to avoid removing elements
+def last_word(txt):  # TODO Relocate to a place where input text is not yet normalized to avoid removing elements
     txt = re.sub(".text[si][ct]{([^}]+)}", "\\0", txt)
     txt = re.sub(".footnoteA{[^}]+}", " ", txt)
     txt = re.sub("{\[}\d+\.{\]}", "", txt)
