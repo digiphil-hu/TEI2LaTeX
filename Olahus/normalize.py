@@ -5,6 +5,10 @@ from bs4 import BeautifulSoup
 def normalize_text(soup, what_to_do):  # re.sub helyett replace
     soup_str = str(soup)
 
+    if "xml" in what_to_do:
+        soup_str = re.sub(r"[\n\t]+", "", soup_str)
+        soup_str = re.sub(r"\s+", " ", soup_str)
+
     if "all" in what_to_do:
         soup_str = soup_str.replace("[", "{[}")
         soup_str = soup_str.replace("]", "{]}")
@@ -21,6 +25,8 @@ def normalize_text(soup, what_to_do):  # re.sub helyett replace
         soup_str = soup_str.replace(")", "{)}")
         soup_str = soup_str.replace("-", r"\-")
         soup_str = hi_rend(soup_str)
+
+
 
     # else:
     #     if "milestone" in what_to_do:

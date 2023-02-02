@@ -91,6 +91,19 @@ def paragraph(para):
         quote_note = para.quote.next_sibling
         if str(quote_note).startswith(r'''<note type="quote"''') is False:
             print("ERROR: Missing <note> after <quote>")
+
+        # Linegroups
+        for lg in quote_actual.find_all("lg"):
+            lg_new = ""
+            for l in lg.find_all("l"):
+                lg_new += l.text
+                if l.next_sibling is not None:
+                    if l.next_sibling.name == "l":
+                        lg_new += r"\\{}"
+            lg_new += ""
+            lg.string = lg_new
+            lg.unwrap()
+
         quote_text = quote_actual.text
 
         # Footnote from quote
@@ -100,6 +113,9 @@ def paragraph(para):
         quote_actual.string = note_new
         quote_actual.unwrap()
         quote_note.extract()
+
+        # seg type signature
+
 
     return para
 
@@ -155,10 +171,10 @@ def choice_supplied(choice):
 def last_word(txt):  # TODO Relocate to a place where input text is not yet normalized to avoid removing elements
     txt = re.sub(".text[si][ct]{([^}]+)}", "\\0", txt)
     txt = re.sub(".footnoteA{[^}]+}", " ", txt)
-    txt = re.sub("{\[}\d+\.{\]}", "", txt)
+    txt = re.sub(r"{\[}\d+\.{\]}", "", txt)
     txt_list = txt.rstrip(",. );!?:").split(" ")
     txt = txt_list[-1]
-    if txt.startswith("\index[pers]"):
+    if txt.startswith(r"\index[pers]"):
         txt_list = txt.split("}")
         txt = txt_list[-1]
     txt = txt.lstrip("(")

@@ -35,6 +35,16 @@ def text2latex(soup, num):
                   + r"\Xtxtbeforenumber[A]{" + num + ",}" + "\n" \
                   + r"\Xtxtbeforenumber[B]{" + num + ",}" + "\n"
 
+    # If <quote> not under <p> => <p><quote>
+    for q in soup.find_all("quote"):
+        par = q.find_parent()
+        if par.name == "div":
+            note_q = q.next_sibling
+            p_q_note = BeautifulSoup("<p>" + str(q) + str(note_q) + "</p>", "xml")
+            q.replace_with(p_q_note)
+            note_q.extract()
+            soup = normalize_text(soup, {"xml"})
+            print(soup)
     # Paragraph
     for p in soup.body.div.find_all("p"):
         p = paragraph(p)
@@ -74,10 +84,7 @@ def main(xml, latex):
         sp = BeautifulSoup(f_xml, "xml")
 
         # Normalize
-        sp = str(sp)
-        sp = re.sub(r"[\n\t]+", "", sp)
-        sp = re.sub(r"\s+", " ", sp)
-        sp = BeautifulSoup(sp, "xml")
+        sp = normalize_text(sp, {"xml"})
 
         # Delete <ref> tags
         for elem in sp.body.find_all("ref"):
@@ -99,7 +106,7 @@ if __name__ == '__main__':
         with open("begin.txt", "r", encoding="utf8") as f_r:
             start = f_r.read()
             f_w.write(start)
-    dir_name_in = "/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML"
+    dir_name_in = "/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML2"
     dir_name_out = "Olahus/LaTeX"
     filelist_in = []
     for dirpath, subdirs, files in os.walk(dir_name_in):
