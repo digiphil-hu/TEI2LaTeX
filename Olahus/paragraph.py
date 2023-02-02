@@ -5,6 +5,7 @@ import re
 
 
 def paragraph(para):
+
     # Quote keywords extraction
     q_keyword_dict = {}
     for index, quote_keyword in enumerate(para.find_all("quote")):
@@ -114,8 +115,13 @@ def paragraph(para):
         quote_actual.unwrap()
         quote_note.extract()
 
-        # seg type signature
-
+    # seg type signature
+    for s in para.find_all("seg"):
+        s_new = r"\begin{flushright}" \
+                + s.text + \
+                r"\end{flushright}"
+        s.string = s_new
+        s.unwrap()
 
     return para
 
@@ -183,7 +189,6 @@ def last_word(txt):  # TODO Relocate to a place where input text is not yet norm
 
 def previous_word(tag):
     # <del> anywhere, text element precedes it
-    # todo [2.]
     if tag.previous_element.name is None and len(tag.previous_element.text.rstrip(".,!?; ")) > 0:
         raw_text = tag.previous_element.text
         lastword = last_word(raw_text)

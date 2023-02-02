@@ -57,6 +57,7 @@ def corresp_changes(string):
 def latex_escape(string):
     string = string.replace("_", r"\_")
     string = string.replace("#", r"\#")
+    string = string.replace("%", r"\%")
     return string
 
 

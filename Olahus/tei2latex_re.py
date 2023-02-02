@@ -44,7 +44,7 @@ def text2latex(soup, num):
             q.replace_with(p_q_note)
             note_q.extract()
             soup = normalize_text(soup, {"xml"})
-            print(soup)
+
     # Paragraph
     for p in soup.body.div.find_all("p"):
         p = paragraph(p)
@@ -86,9 +86,12 @@ def main(xml, latex):
         # Normalize
         sp = normalize_text(sp, {"xml"})
 
-        # Delete <ref> tags
-        for elem in sp.body.find_all("ref"):
-            elem.extract()
+        # Delete <ref> tags from body and from header note type critIntro
+        for item in sp.body.find_all("ref"):
+            item.extract()
+        for item in sp.teiHeader.find_all("note", {"type": "critIntro"}):
+            for r in item.find_all("ref"):
+                r.extract()
 
         with open("latex2.tex", "a", encoding="utf8") as f_latex:
             # Write header
@@ -106,7 +109,7 @@ if __name__ == '__main__':
         with open("begin.txt", "r", encoding="utf8") as f_r:
             start = f_r.read()
             f_w.write(start)
-    dir_name_in = "/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML2"
+    dir_name_in = "/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML"
     dir_name_out = "Olahus/LaTeX"
     filelist_in = []
     for dirpath, subdirs, files in os.walk(dir_name_in):
