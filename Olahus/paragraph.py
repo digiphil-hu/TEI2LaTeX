@@ -4,7 +4,10 @@ from normalize import normalize_text
 import re
 
 
-def paragraph(para):
+def paragraph(para):  # <gap>
+
+    for g in para.find_all("gap"):
+        g.string = r"<\ldots{}>"
 
     # Quote keywords extraction
     q_keyword_dict = {}

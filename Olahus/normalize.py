@@ -65,6 +65,8 @@ def latex_escape(string):
     string = string.replace("edindex{[}place{]}", "edindex[place]")
     string = string.replace("edindex{[}pers{]}", "edindex[pers]")
     string = string.replace("{\-1", "{-1")
+    string = string.replace("\Xtxtbeforenumber{[}A{]}", "\Xtxtbeforenumber[A]")
+    string = string.replace("\Xtxtbeforenumber{[}B{]}", "\Xtxtbeforenumber[B]")
 
     return string
 
