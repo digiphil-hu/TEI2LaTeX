@@ -26,41 +26,41 @@ def paragraph(para):
             q_keyword = q_text.rstrip(".,")
             q_keyword_dict[index] = q_keyword
 
-    para = normalize_text(para, {"all"})
+    para = normalize_text(para, {"corresp"})
 
     for note_tag in para.find_all("note", attrs={"type": "critic"}):
-        note_text = "\\footnoteA{" + note_tag.text + "}"
+        note_tag_norm = normalize_text(note_tag, {"hi", "names"})
+        note_text = "\\footnoteA{" + note_tag_norm.text + "}"
         note_tag.string = note_text
-        # print(note_text)
         note_tag.unwrap()
 
-    for app_tag in para.find_all("app"):
-        lem_text = app_tag.lem.text
-        if lem_text == "" or lem_text == " ":
-            lem_text = "UNKNOWN"
-        rdg_text = app_tag.rdg.text
-        lem_wit = app_tag.lem["wit"].split("#")[-1]
-        rdg_wit = app_tag.rdg["wit"].split("#")[-1]
-        if app_tag.rdg.string is None and app_tag.rdg.find_next("del") is None:
-            app_tag.string = r"\edtext{" + lem_text + r"}{\Afootnote{\textit{ms. " + rdg_wit + ". om.}}}"
-            # print(app_tag.string)
-            app_tag.unwrap()
-            continue
-        if app_tag.lem.find_next("del") is not None:
-            #  print("lem alatt del:", appTag.lem)
-            continue
-        elif app_tag.rdg.find_next("del") is not None:
-            #  print("rdg alatt del:", appTag.rdg)
-            continue
-        else:
-            app_tag.string = r"\edtext{" + lem_text + r"}{\Afootnote{\textit{ms. " + rdg_wit + ". " + rdg_text + "}}}"
-            # print(appTag.string)
-            app_tag.unwrap()
+    # for app_tag in para.find_all("app"):
+    #     lem_text = app_tag.lem.text
+    #     if lem_text == "" or lem_text == " ":
+    #         lem_text = "UNKNOWN"
+    #     rdg_text = app_tag.rdg.text
+    #     lem_wit = app_tag.lem["wit"].split("#")[-1]
+    #     rdg_wit = app_tag.rdg["wit"].split("#")[-1]
+    #     if app_tag.rdg.string is None and app_tag.rdg.find_next("del") is None:
+    #         app_tag.string = r"\edtext{" + lem_text + r"}{\Afootnote{\textit{ms. " + rdg_wit + ". om.}}}"
+    #         # print(app_tag.string)
+    #         app_tag.unwrap()
+    #         continue
+    #     if app_tag.lem.find_next("del") is not None:
+    #         #  print("lem alatt del:", appTag.lem)
+    #         continue
+    #     elif app_tag.rdg.find_next("del") is not None:
+    #         #  print("rdg alatt del:", appTag.rdg)
+    #         continue
+    #     else:
+    #         app_tag.string = r"\edtext{" + lem_text + r"}{\Afootnote{\textit{ms. " + rdg_wit + ". " + rdg_text + "}}}"
+    #         # print(appTag.string)
+    #         app_tag.unwrap()
 
-    for delAlone in para.find_all("del"):
-        if not str(delAlone.next_sibling).startswith("<add"):
-            delAlone = del_tag(delAlone)
-            delAlone.unwrap()
+    for del_alone in para.find_all("del"):
+        if not str(del_alone.next_sibling).startswith("<add"):
+            del_alone = del_tag(del_alone)
+            del_alone.unwrap()
 
     # <del><add>
     for delAddTag in para.find_all("del"):
@@ -71,10 +71,10 @@ def paragraph(para):
 
     # <add type=insert>
     for _ in range(2):
-        for addInsert in para.find_all("add", attrs={"type": "insert"}):
-            if len(addInsert.find_all("add")) == 0:
-                addInsert = add_insert(addInsert)
-                addInsert.unwrap()
+        for add_ins in para.find_all("add", attrs={"type": "insert"}):
+            if len(add_ins.find_all("add")) == 0:
+                add_ins = add_insert(add_ins)
+                add_ins.unwrap()
             """else:
             addInsertChild = addInsert.add
             addInsertChild = add_insert(addInsertChild)
@@ -122,6 +122,8 @@ def paragraph(para):
                 r"\end{flushright}"
         s.string = s_new
         s.unwrap()
+
+    para = normalize_text(para, {"milestone", "hi", "names"})
 
     return para
 

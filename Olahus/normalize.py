@@ -2,7 +2,7 @@ import re
 from bs4 import BeautifulSoup
 
 
-def normalize_text(soup, what_to_do):  # re.sub helyett replace
+def normalize_text(soup, what_to_do):
     soup_str = str(soup)
 
     if "xml" in what_to_do:
@@ -10,9 +10,9 @@ def normalize_text(soup, what_to_do):  # re.sub helyett replace
         soup_str = re.sub(r"\s+", " ", soup_str)
 
     if "all" in what_to_do:
-        soup_str = soup_str.replace("[", "{[}")
-        soup_str = soup_str.replace("]", "{]}")
-        soup_str = soup_str.replace("-", r"\-")
+        # soup_str = soup_str.replace("[", "{[}")
+        # soup_str = soup_str.replace("]", "{]}")
+        # soup_str = soup_str.replace("-", r"\-")
         soup_str = milestone_p(soup_str)
         soup_str = corresp_changes(soup_str)
         soup_str = hi_rend(soup_str)
@@ -26,17 +26,15 @@ def normalize_text(soup, what_to_do):  # re.sub helyett replace
         soup_str = soup_str.replace("-", r"\-")
         soup_str = hi_rend(soup_str)
 
-
-
-    # else:
-    #     if "milestone" in what_to_do:
-    #         soup_str = milestone_p(soup_str)
-    #     if "corresp" in what_to_do:
-    #         soup_str = corresp_changes(soup_str)
-    #     if "hi" in what_to_do:
-    #         soup_str = hi_rend(soup_str)
-    #     if "names" in what_to_do:
-    #         soup_str = person_place_name(soup_str)
+    else:
+        if "milestone" in what_to_do:
+            soup_str = milestone_p(soup_str)
+        if "corresp" in what_to_do:
+            soup_str = corresp_changes(soup_str)
+        if "hi" in what_to_do:
+            soup_str = hi_rend(soup_str)
+        if "names" in what_to_do:
+            soup_str = person_place_name(soup_str)
 
     soup = BeautifulSoup(soup_str, "xml")
     return soup
@@ -48,16 +46,26 @@ def milestone_p(string):
     return string
 
 
-def corresp_changes(string):
+def corresp_changes(string): # <del corresp="editor">
     string = re.sub("corresp=\"Olahus\"", "corresp=\"O\"", string)
-    string = re.sub("corresp=\"editor\"", "corresp=\" \"", string)  # <del corresp="editor">
+    string = re.sub("corresp=\"editor\"", "corresp=\" \"", string)
+    string = re.sub("corresp=\"scriba\"", "corresp=\"scr\"", string)
     return string
 
 
 def latex_escape(string):
     string = string.replace("_", r"\_")
+    string = string.replace("-", r"\-")
     string = string.replace("#", r"\#")
     string = string.replace("%", r"\%")
+    string = string.replace("[", "{[}")
+    string = string.replace("]", "{]}")
+
+    # Replace false escapea
+    string = string.replace("edindex{[}place{]}", "edindex[place]")
+    string = string.replace("edindex{[}pers{]}", "edindex[pers]")
+    string = string.replace("{\-1", "{-1")
+
     return string
 
 

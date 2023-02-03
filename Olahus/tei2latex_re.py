@@ -93,6 +93,10 @@ def main(xml, latex):
             for r in item.find_all("ref"):
                 r.extract()
 
+        # Delete milestone unit pagebreak
+        for pb in sp.body.find_all("milestone", {"unit": "pb"}):
+            pb.extract()
+
         with open("latex2.tex", "a", encoding="utf8") as f_latex:
             # Write header
             h = header2latex(sp.teiHeader)
