@@ -123,21 +123,44 @@ def person_place_name(string):
     return str(soup)
 
 
-def previous_word(tag):
-    # <del> anywhere, text element precedes it
-    if tag.previous_element.name is None and len(tag.previous_element.text.rstrip(".,!?; ")) > 0:
-        raw_text = tag.previous_element.text
-        txt_list = raw_text.rstrip(",. );!?:").split(" ")
-        lastword = txt_list[-1]
-        if lastword != "":
-            return lastword
+def previous_word(del_a):
+    taglist = ["persName", "placeName", "add"]
+    if del_a.previous_element.name is None:
+        if del_a.previous_element.text.replace(" ", "") == "":
+            try:
+                prev_prev = del_a.find_previous_sibling()
+                if prev_prev.name in taglist:
+                    raw_text = prev_prev.text
+                    print("Name, Add", raw_text)
+                if prev_prev.name == "choice":
+                    raw_text = prev_prev.supplied.text
+                    print("Choice", raw_text)
+                if prev_prev.name == "note":
+                    raw_text = prev_prev.previous_element.text
+                    print("note", raw_text)
+            except AttributeError:
+                raw_text = "VEZÉRSZÓ"
+                print("NINCS előző tag!")
+        else:
+            raw_text = del_a.previous_element.text
+            print("Szöveg, tele.", raw_text)
+    else:
+        # print(xml.lstrip("/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML"))
+        # print(del_alone.previous_element.name)
+        if del_a.previous_element.name == "add":
+            raw_text = del_a.previous_element.text
+            print("Add", raw_text)
+        if del_a.previous_element.name == "milestone":
+            prev_elem = del_a.previous_element
+            raw_text = prev_elem.previous_element.text
+            print("Milestone", raw_text)
+        if del_a.previous_element.name == "p":
+            raw_text = "VEZÉRSZÓ"
+            print("p", raw_text)
 
-    if tag.find_parent().name == "add":
-        raw_text = tag.find_parent().text
-        txt_list = raw_text.rstrip(",. );!?:").split(" ")
-        lastword = txt_list[-1]
+    txt_list = raw_text.rstrip(",. );!?:]}").split(" ")
+    lastword = txt_list[-1]
     if lastword != "":
         return lastword
-
-    #    print(f"Parent: {tag.find_parent().name}  Prev: {tag.previous_element.name} Deleted text: {tag.text}")
-    return "Unknown"
+    else:
+        return "UNKNOWN"

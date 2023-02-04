@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 
 def normalize_text(string):
     # Input and output: STRING!!!! [ and ] => {}
-    string = re.sub("\n\t", "", string)
+    string = string.replace("\n\t", "")
     string = re.sub('\s+', " ", string)
     string = re.sub("\[", "{[}", string)
     string = re.sub("\]", "{]}", string)
@@ -15,7 +15,7 @@ def normalize_text(string):
 
 
 def main(xml):
-    # print(xml)
+    # print(xml.lstrip("/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML"))
     with open(xml, "r", encoding="utf8") as f_xml:
         sp = BeautifulSoup(f_xml, "xml")
         sp1 = normalize_text(str(sp))
@@ -75,16 +75,57 @@ def main(xml):
             for d2 in d1.find_all("del"):
                 print("Del alatt del: ", xml)
 
-        for n in sp.body.find_all("note"):
-            try:
-                if n["type"] == "critic":
-                    father = n.find_parent()
-                    if father.name != "p":
-                        print(father.name)
-                        if father.name == "quote":
-                            print("quote", n, xml)
-            except KeyError:
-                print(n, "\t", xml)
+        # for n in sp.body.find_all("note"):
+        #     try:
+        #         if n["type"] == "critic":
+        #             father = n.find_parent()
+        #             if father.name != "p":
+        #                 print(father.name)
+        #                 if father.name == "quote":
+        #                     print("quote", n, xml)
+        #     except KeyError:
+        #         print(n, "\t", xml)
+        taglist = ["persName", "placeName", "add"]
+        for del_alone in sp.body.find_all("del"):
+            if not str(del_alone.next_sibling).startswith("<add"):
+                if del_alone.previous_element.name is None:
+                    if del_alone.previous_element.text.replace(" ", "") == "":
+                        try:
+                            prev_prev = del_alone.find_previous_sibling()
+                            # print(prev_prev.name)
+                            if prev_prev.name in taglist:
+                                raw_text = prev_prev.text
+                                print("Name, Add", raw_text)
+                            if prev_prev.name == "choice":
+                                raw_text = prev_prev.supplied.text
+                                print("Choice", raw_text)
+                            if prev_prev.name == "note":
+                                raw_text = prev_prev.previous_element.text
+                                print("note", raw_text)
+                        except AttributeError:
+                            raw_text = "VEZÉRSZÓ"
+                            print("NINCS előző tag!")
+                    else:
+                        raw_text = del_alone.previous_element.text
+                        print("Szöveg, tele.", raw_text)
+                else:
+                    # print(xml.lstrip("/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML"))
+                    # print(del_alone.previous_element.name)
+                    if del_alone.previous_element.name == "add":
+                        raw_text = del_alone.previous_element.text
+                        print("Add", raw_text)
+                    if del_alone.previous_element.name == "milestone":
+                        prev_elem = del_alone.previous_element
+                        raw_text = prev_elem.previous_element.text
+                        print("Milestone", raw_text)
+                    if del_alone.previous_element.name == "p":
+                        raw_text = "VEZÉRSZÓ"
+                        print("p", raw_text)
+
+                    # if del_alone.find_previous_sibling() is None:
+                    #     print("miafasz?")
+                    # else:
+                    #     print(del_alone.find_previous_sibling().name, "-----", del_alone.find_previous_sibling().text)
 
 """
         # Quote print
@@ -114,6 +155,6 @@ if __name__ == '__main__':
                 continue
             elif x.endswith(".xml"):
                 filelist_in.append(os.path.join(dirpath, x))
-
+    filelist_in.sort()
     for i in filelist_in:
         main(i)

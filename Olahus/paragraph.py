@@ -4,6 +4,7 @@ from normalize import normalize_text
 
 def paragraph(para):  # <gap>
 
+    # TODO: What would happen to the <gap>s?
     for g in para.find_all("gap"):
         g.string = r"<\ldots{}>"
 
@@ -29,36 +30,11 @@ def paragraph(para):  # <gap>
 
     para = normalize_text(para, {"corresp"})
 
+    # <app> tag
+    # apparatus(para)
 
-
-
-    # for app_tag in para.find_all("app"):
-    #     lem_text = app_tag.lem.text
-    #     if lem_text == "" or lem_text == " ":
-    #         lem_text = "UNKNOWN"
-    #     rdg_text = app_tag.rdg.text
-    #     lem_wit = app_tag.lem["wit"].split("#")[-1]
-    #     rdg_wit = app_tag.rdg["wit"].split("#")[-1]
-    #     if app_tag.rdg.string is None and app_tag.rdg.find_next("del") is None:
-    #         app_tag.string = r"\edtext{" + lem_text + r"}{\Afootnote{\textit{ms. " + rdg_wit + ". om.}}}"
-    #         # print(app_tag.string)
-    #         app_tag.unwrap()
-    #         continue
-    #     if app_tag.lem.find_next("del") is not None:
-    #         #  print("lem alatt del:", appTag.lem)
-    #         continue
-    #     elif app_tag.rdg.find_next("del") is not None:
-    #         #  print("rdg alatt del:", appTag.rdg)
-    #         continue
-    #     else:
-    #         app_tag.string = r"\edtext{" + lem_text + r"}{\Afootnote{\textit{ms. " + rdg_wit + ". " + rdg_text + "}}}"
-    #         # print(appTag.string)
-    #         app_tag.unwrap()
-
-    for del_alone in para.find_all("del"):
-        if not str(del_alone.next_sibling).startswith("<add"):
-            del_alone = del_tag(del_alone)
-            del_alone.unwrap()
+    # <del> and no <add>
+    just_del(para)
 
     # <del><add>
     for delAddTag in para.find_all("del"):
@@ -121,12 +97,54 @@ def paragraph(para):  # <gap>
         s.string = s_new
         s.unwrap()
 
-    # note critic is found under: TODO: <add>, <seg>, <quote>. Now let's run on the remaining notes: directly under <p>
+    # note critic is found under: TODO: <add>, <seg>, <quote>, <supplied>.
+    # Now let's run on the remaining notes: directly under <p>
     note_critic(para)
 
+    # "hi" and "names" that are not processed freviously
     para = normalize_text(para, {"milestone", "hi", "names"})
 
     return para
+
+
+def just_del(para):
+    # TODO: "hi", "names"
+    # No note_critic under <del>
+    for del_alone in para.find_all("del"):
+        if not str(del_alone.next_sibling).startswith("<add"):
+            lastword = previous_word(del_alone)
+            # print(lastword)
+            d_cor = del_alone["corresp"]
+            d_text = del_alone.text
+            d_new = r"\edtext{" + r"}{\lemma{" + lastword + r"}\Afootnote{\textit{" + d_cor + " del. ex }" \
+                    + lastword + " " + d_text + " &del_alone&}}"
+            del_alone.string = d_new
+            del_alone.unwrap()
+
+
+def apparatus(para):
+    for app_tag in para.find_all("app"):
+        lem_text = app_tag.lem.text
+        if lem_text == "" or lem_text == " ":
+            lem_text = "UNKNOWN"
+        rdg_text = app_tag.rdg.text
+        lem_wit = app_tag.lem["wit"].split("#")[-1]
+        rdg_wit = app_tag.rdg["wit"].split("#")[-1]
+        if app_tag.rdg.string is None and app_tag.rdg.find_next("del") is None:
+            app_tag.string = r"\edtext{" + lem_text + r"}{\Afootnote{\textit{ms. " + rdg_wit + ". om.}}}"
+            # print(app_tag.string)
+            app_tag.unwrap()
+            continue
+        if app_tag.lem.find_next("del") is not None:
+            #  print("lem alatt del:", appTag.lem)
+            continue
+        elif app_tag.rdg.find_next("del") is not None:
+            #  print("rdg alatt del:", appTag.rdg)
+            continue
+        else:
+            app_tag.string = r"\edtext{" + lem_text + r"}{\Afootnote{\textit{ms. " + rdg_wit + ". " + rdg_text + "}}}"
+            # print(appTag.string)
+            app_tag.unwrap()
 
 
 def note_critic(para):
@@ -135,18 +153,6 @@ def note_critic(para):
         note_text = "\\footnoteA{" + note_tag_norm.text + "}"
         note_tag.string = note_text
         note_tag.unwrap()
-
-
-def del_tag(del_tag):
-    # <del> not followed by <add>
-    # TODO <note> or <add> under <del>?
-    d_cor = del_tag["corresp"]
-    d_text = del_tag.text
-    lemma = previous_word(del_tag)
-    d_new = r"\edtext{" + r"}{\lemma{" + lemma + r"}\Afootnote{\textit{" + d_cor + " del. ex }" \
-            + lemma + " " + d_text + "}}"
-    del_tag.string = d_new
-    return del_tag
 
 
 def del_add(del_tag):

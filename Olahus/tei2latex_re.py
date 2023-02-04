@@ -79,11 +79,11 @@ def text2latex(soup, num):
 
 
 def main(xml, latex):
-    print(xml.lstrip("/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML"))
+    # print(xml.lstrip("/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML"))
     with open(xml, "r", encoding="utf8") as f_xml:
         sp = BeautifulSoup(f_xml, "xml")
 
-        # Normalize
+        # Normalize xml: removes tab, linebreak, double space
         sp = normalize_text(sp, {"xml"})
 
         # Delete <ref> tags from body and from header note type critIntro
