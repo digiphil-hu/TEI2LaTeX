@@ -37,11 +37,7 @@ def paragraph(para):  # <gap>
     just_del(para)
 
     # <del><add>
-    for delAddTag in para.find_all("del"):
-        if str(delAddTag.next_sibling).startswith("<add"):
-            delAddTag = del_add(delAddTag)
-            delAddTag.next_sibling.extract()
-            delAddTag.unwrap()
+    del_add(para)
 
     # <add type=insert>
     for _ in range(2):
@@ -99,7 +95,7 @@ def paragraph(para):  # <gap>
 
     # note critic is found under: TODO: <add>, <seg>, <quote>, <supplied>.
     # Now let's run on the remaining notes: directly under <p>
-    note_critic(para)
+    para = note_critic(para)
 
     # "hi" and "names" that are not processed freviously
     para = normalize_text(para, {"milestone", "hi", "names"})
@@ -107,17 +103,35 @@ def paragraph(para):  # <gap>
     return para
 
 
+def del_add(para):
+    # Norma
+    for del_tag in para.find_all("del"):
+        if str(del_tag.next_sibling).startswith("<add"):
+            del_tag_norm = normalize_text(del_tag, {"hi", "names"})
+            d_cor = del_tag["corresp"]
+            d_text = del_tag_norm.text
+            a = del_tag.next_sibling
+            a = note_critic(a)
+            a_norm = normalize_text(a, {"hi", "names"})
+            a_cor = a["corresp"]
+            a_text = a_norm.text
+            if d_cor == a_cor:
+                d_new = r"\edtext{" + a_text + r"}{\Afootnote{\textit{" + a_cor + " corr. ex} " + d_text + "&deladd&}}"
+            del_tag.string = d_new
+            a.extract()
+            del_tag.unwrap()
+
+
 def just_del(para):
-    # TODO: "hi", "names"
     # No note_critic under <del>
     for del_alone in para.find_all("del"):
         if not str(del_alone.next_sibling).startswith("<add"):
             lastword = previous_word(del_alone)
-            # print(lastword)
+            del_alone_norm = normalize_text(del_alone, {"hi", "names"})
             d_cor = del_alone["corresp"]
-            d_text = del_alone.text
+            d_text = del_alone_norm.text
             d_new = r"\edtext{" + r"}{\lemma{" + lastword + r"}\Afootnote{\textit{" + d_cor + " del. ex }" \
-                    + lastword + " " + d_text + " &del_alone&}}"
+                    + lastword + " " + d_text + " &delalone&}}"
             del_alone.string = d_new
             del_alone.unwrap()
 
@@ -147,23 +161,13 @@ def apparatus(para):
             app_tag.unwrap()
 
 
-def note_critic(para):
-    for note_tag in para.find_all("note", attrs={"type": "critic"}):
+def note_critic(tag):
+    for note_tag in tag.find_all("note", attrs={"type": "critic"}):
         note_tag_norm = normalize_text(note_tag, {"hi", "names"})
-        note_text = "\\footnoteA{" + note_tag_norm.text + "}"
+        note_text = "\\footnoteA{" + note_tag_norm.text + "&notecritic&}"
         note_tag.string = note_text
         note_tag.unwrap()
-
-
-def del_add(del_tag):
-    d_cor = del_tag["corresp"]
-    d_text = del_tag.text
-    a_cor = del_tag.next_sibling["corresp"]
-    a_text = del_tag.next_sibling.text
-    if d_cor == a_cor:
-        d_new = r"\edtext{" + a_text + r"}{\Afootnote{\textit{" + a_cor + " corr. ex} " + d_text + "}}"
-    del_tag.string = d_new
-    return del_tag
+    return tag
 
 
 def add_insert(add_tag):
