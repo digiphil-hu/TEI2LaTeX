@@ -85,47 +85,51 @@ def main(xml):
         #                     print("quote", n, xml)
         #     except KeyError:
         #         print(n, "\t", xml)
-        taglist = ["persName", "placeName", "add"]
-        for del_alone in sp.body.find_all("del"):
-            if not str(del_alone.next_sibling).startswith("<add"):
-                if del_alone.previous_element.name is None:
-                    if del_alone.previous_element.text.replace(" ", "") == "":
-                        try:
-                            prev_prev = del_alone.find_previous_sibling()
-                            # print(prev_prev.name)
-                            if prev_prev.name in taglist:
-                                raw_text = prev_prev.text
-                                print("Name, Add", raw_text)
-                            if prev_prev.name == "choice":
-                                raw_text = prev_prev.supplied.text
-                                print("Choice", raw_text)
-                            if prev_prev.name == "note":
-                                raw_text = prev_prev.previous_element.text
-                                print("note", raw_text)
-                        except AttributeError:
-                            raw_text = "VEZÉRSZÓ"
-                            print("NINCS előző tag!")
-                    else:
-                        raw_text = del_alone.previous_element.text
-                        print("Szöveg, tele.", raw_text)
-                else:
-                    # print(xml.lstrip("/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML"))
-                    # print(del_alone.previous_element.name)
-                    if del_alone.previous_element.name == "add":
-                        raw_text = del_alone.previous_element.text
-                        print("Add", raw_text)
-                    if del_alone.previous_element.name == "milestone":
-                        prev_elem = del_alone.previous_element
-                        raw_text = prev_elem.previous_element.text
-                        print("Milestone", raw_text)
-                    if del_alone.previous_element.name == "p":
-                        raw_text = "VEZÉRSZÓ"
-                        print("p", raw_text)
+        # taglist = ["persName", "placeName", "add"]
+        # for del_alone in sp.body.find_all("del"):
+        #     if not str(del_alone.next_sibling).startswith("<add"):
+        #         if del_alone.previous_element.name is None:
+        #             if del_alone.previous_element.text.replace(" ", "") == "":
+        #                 try:
+        #                     prev_prev = del_alone.find_previous_sibling()
+        #                     # print(prev_prev.name)
+        #                     if prev_prev.name in taglist:
+        #                         raw_text = prev_prev.text
+        #                         print("Name, Add", raw_text)
+        #                     if prev_prev.name == "choice":
+        #                         raw_text = prev_prev.supplied.text
+        #                         print("Choice", raw_text)
+        #                     if prev_prev.name == "note":
+        #                         raw_text = prev_prev.previous_element.text
+        #                         print("note", raw_text)
+        #                 except AttributeError:
+        #                     raw_text = "VEZÉRSZÓ"
+        #                     print("NINCS előző tag!")
+        #             else:
+        #                 raw_text = del_alone.previous_element.text
+        #                 print("Szöveg, tele.", raw_text)
+        #         else:
+        #             # print(xml.lstrip("/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML"))
+        #             # print(del_alone.previous_element.name)
+        #             if del_alone.previous_element.name == "add":
+        #                 raw_text = del_alone.previous_element.text
+        #                 print("Add", raw_text)
+        #             if del_alone.previous_element.name == "milestone":
+        #                 prev_elem = del_alone.previous_element
+        #                 raw_text = prev_elem.previous_element.text
+        #                 print("Milestone", raw_text)
+        #             if del_alone.previous_element.name == "p":
+        #                 raw_text = "VEZÉRSZÓ"
+        #                 print("p", raw_text)
+        #
+        #             # if del_alone.find_previous_sibling() is None:
+        #             #     print("miafasz?")
+        #             # else:
+        #             #     print(del_alone.find_previous_sibling().name, "-----", del_alone.find_previous_sibling().text)
 
-                    # if del_alone.find_previous_sibling() is None:
-                    #     print("miafasz?")
-                    # else:
-                    #     print(del_alone.find_previous_sibling().name, "-----", del_alone.find_previous_sibling().text)
+        for name in sp.body.find_all("persName"):
+            for nested in name.find_all():
+                print(nested)
 
 """
         # Quote print

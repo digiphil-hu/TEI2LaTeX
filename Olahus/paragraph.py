@@ -5,8 +5,8 @@ from normalize import normalize_text
 def paragraph(para):  # <gap>
 
     # TODO: What would happen to the <gap>s?
-    for g in para.find_all("gap"):
-        g.string = r"<\ldots{}>"
+    # for g in para.find_all("gap"):
+    #     g.string = r"<\ldots{}>"
 
     # Quote keywords extraction
     q_keyword_dict = {}
@@ -40,17 +40,7 @@ def paragraph(para):  # <gap>
     del_add(para)
 
     # <add type=insert>
-    for _ in range(2):
-        for add_ins in para.find_all("add", attrs={"type": "insert"}):
-            if len(add_ins.find_all("add")) == 0:
-                add_ins = add_insert(add_ins)
-                add_ins.unwrap()
-            """else:
-            addInsertChild = addInsert.add
-            addInsertChild = add_insert(addInsertChild)
-            addInsertChild.unwrap()
-            add_insert(addInsert)
-            addInsert.unwrap()"""
+    add_ins(para)
 
     # <choice> <supplied>
     for ch in para.find_all("choice"):
@@ -101,6 +91,17 @@ def paragraph(para):  # <gap>
     para = normalize_text(para, {"milestone", "hi", "names"})
 
     return para
+
+
+def add_ins(para):
+    for _ in range(2):
+        for add_in in para.find_all("add", attrs={"type": "insert"}):
+            if len(add_in.find_all("add")) == 0:
+                a_text = add_in.text
+                a_cor = add_in["corresp"]
+                a_new = r"\edtext{" + a_text + r"}{\Afootnote{\textit{" + a_cor + " add.&addins&}}}"
+                add_in.string = a_new
+                add_in.unwrap()
 
 
 def del_add(para):
@@ -168,14 +169,6 @@ def note_critic(tag):
         note_tag.string = note_text
         note_tag.unwrap()
     return tag
-
-
-def add_insert(add_tag):
-    a_text = add_tag.text
-    a_cor = add_tag["corresp"]
-    a_new = r"\edtext{" + a_text + r"}{\Afootnote{\textit{" + a_cor + " add.}}}"
-    add_tag.string = a_new
-    return add_tag
 
 
 def choice_supplied(choice):
