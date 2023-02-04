@@ -4,9 +4,10 @@ import os
 import re
 from bs4 import BeautifulSoup
 
+
 def normalize_text(string):
     # Input and output: STRING!!!! [ and ] => {}
-    string = re.sub("[\n\t\s]+", " ", string)
+    string = re.sub("\n\t", "", string)
     string = re.sub('\s+', " ", string)
     string = re.sub("\[", "{[}", string)
     string = re.sub("\]", "{]}", string)
@@ -14,11 +15,11 @@ def normalize_text(string):
 
 
 def main(xml):
+    # print(xml)
     with open(xml, "r", encoding="utf8") as f_xml:
         sp = BeautifulSoup(f_xml, "xml")
         sp1 = normalize_text(str(sp))
         sp = BeautifulSoup(sp1, "xml")
-        print(xml)
 
         # Delete <ref> tags
         for i in sp.find_all("ref"):
@@ -32,20 +33,20 @@ def main(xml):
                 if d_cor != a_cor:
                     print("File name: " + xml + "Del corresp: " + d_cor + "Add corrsp: " + a_cor)
 
-        #<choice> <orig> és <supplied> check
+        # <choice> <orig> és <supplied> check
         for ch in sp.find_all("choice"):
             if len(ch.find_all("orig")) == 0:
                 print(ch, xml)
             if len(ch.find_all("supplied")) == 0:
                 print(ch, xml)
 
-        #<orig><supplied> under <choice>
+        # <orig><supplied> under <choice>
         for sup in sp.find_all("supplied"):
-            parent = sup.find_parent(re.compile("[a-z]+"))
+            parent = sup.find_parent(re.compile("[a-zA-Z]+"))
             if parent.name != "choice":
                 print(parent.name, xml)
         for orig in sp.find_all("orig"):
-            parent = sup.find_parent(re.compile("[a-z]+"))
+            parent = sup.find_parent(re.compile("[a-zA-Z]+"))
             if parent.name != "choice":
                 print(parent.name, xml)
 
@@ -58,10 +59,12 @@ def main(xml):
             if q.next_sibling is None:
                 print("Quote next tag missing: ", xml)
             if q.next_sibling is not None and q.next_sibling.name != "note":
-                print(f"Quote but no note, but: {q.next_sibling.name}", xml)
+                if q.next_sibling != " ":
+                    print(f"Quote but no note, but: {q.next_sibling.name}", xml)
             for q_sub in sp.quote.findChildren(re.compile("[a-zA-Z]+")):
                 if q_sub.name == "p":
-                    print("Quote alatt: " , xml)
+                    print("Quote alatt: ", xml)
+
         # <quote> in verso?
         for div in sp.find_all("div", attrs={"type": "verso"}):
             for elem in div.find_all("quote"):
@@ -71,6 +74,17 @@ def main(xml):
         for d1 in sp.find_all("del"):
             for d2 in d1.find_all("del"):
                 print("Del alatt del: ", xml)
+
+        for n in sp.body.find_all("note"):
+            try:
+                if n["type"] == "critic":
+                    father = n.find_parent()
+                    if father.name != "p":
+                        print(father.name)
+                        if father.name == "quote":
+                            print("quote", n, xml)
+            except KeyError:
+                print(n, "\t", xml)
 
 """
         # Quote print
@@ -91,13 +105,12 @@ def main(xml):
                     f_doc.write("Filename: " + xml_short + "\n" + "Quote: " + quote + "\n" + "Note missing!" + "\n\n")
 """
 
-
 if __name__ == '__main__':
-    dir_name_in = "/home/elte-dh-celestra/PycharmProjects/TEI2LaTeX/Olahus/XML"
+    dir_name_in = "/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML"
     filelist_in = []
     for dirpath, subdirs, files in os.walk(dir_name_in):
         for x in files:
-            if x.endswith("KUTYAFÜLE"):
+            if x.endswith("sz.xml"):
                 continue
             elif x.endswith(".xml"):
                 filelist_in.append(os.path.join(dirpath, x))

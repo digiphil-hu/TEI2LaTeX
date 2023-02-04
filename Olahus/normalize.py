@@ -121,3 +121,23 @@ def person_place_name(string):
         place.string = "\edindex[place]{" + place.text + "}" + place.text
         place.unwrap()
     return str(soup)
+
+
+def previous_word(tag):
+    # <del> anywhere, text element precedes it
+    if tag.previous_element.name is None and len(tag.previous_element.text.rstrip(".,!?; ")) > 0:
+        raw_text = tag.previous_element.text
+        txt_list = raw_text.rstrip(",. );!?:").split(" ")
+        lastword = txt_list[-1]
+        if lastword != "":
+            return lastword
+
+    if tag.find_parent().name == "add":
+        raw_text = tag.find_parent().text
+        txt_list = raw_text.rstrip(",. );!?:").split(" ")
+        lastword = txt_list[-1]
+    if lastword != "":
+        return lastword
+
+    #    print(f"Parent: {tag.find_parent().name}  Prev: {tag.previous_element.name} Deleted text: {tag.text}")
+    return "Unknown"

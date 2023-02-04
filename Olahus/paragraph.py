@@ -1,7 +1,5 @@
-from bs4 import BeautifulSoup
-
+from Olahus.normalize import previous_word
 from normalize import normalize_text
-import re
 
 
 def paragraph(para):  # <gap>
@@ -31,11 +29,8 @@ def paragraph(para):  # <gap>
 
     para = normalize_text(para, {"corresp"})
 
-    for note_tag in para.find_all("note", attrs={"type": "critic"}):
-        note_tag_norm = normalize_text(note_tag, {"hi", "names"})
-        note_text = "\\footnoteA{" + note_tag_norm.text + "}"
-        note_tag.string = note_text
-        note_tag.unwrap()
+
+
 
     # for app_tag in para.find_all("app"):
     #     lem_text = app_tag.lem.text
@@ -126,9 +121,20 @@ def paragraph(para):  # <gap>
         s.string = s_new
         s.unwrap()
 
+    # note critic is found under: TODO: <add>, <seg>, <quote>. Now let's run on the remaining notes: directly under <p>
+    note_critic(para)
+
     para = normalize_text(para, {"milestone", "hi", "names"})
 
     return para
+
+
+def note_critic(para):
+    for note_tag in para.find_all("note", attrs={"type": "critic"}):
+        note_tag_norm = normalize_text(note_tag, {"hi", "names"})
+        note_text = "\\footnoteA{" + note_tag_norm.text + "}"
+        note_tag.string = note_text
+        note_tag.unwrap()
 
 
 def del_tag(del_tag):
@@ -179,32 +185,3 @@ def choice_supplied(choice):
     return choice
 
 
-def last_word(txt):  # TODO Relocate to a place where input text is not yet normalized to avoid removing elements
-    txt = re.sub(".text[si][ct]{([^}]+)}", "\\0", txt)
-    txt = re.sub(".footnoteA{[^}]+}", " ", txt)
-    txt = re.sub(r"{\[}\d+\.{\]}", "", txt)
-    txt_list = txt.rstrip(",. );!?:").split(" ")
-    txt = txt_list[-1]
-    if txt.startswith(r"\index[pers]"):
-        txt_list = txt.split("}")
-        txt = txt_list[-1]
-    txt = txt.lstrip("(")
-    return txt
-
-
-def previous_word(tag):
-    # <del> anywhere, text element precedes it
-    if tag.previous_element.name is None and len(tag.previous_element.text.rstrip(".,!?; ")) > 0:
-        raw_text = tag.previous_element.text
-        lastword = last_word(raw_text)
-        if lastword != "":
-            return lastword
-
-    if tag.find_parent().name == "add":
-        raw_text = tag.find_parent().text
-        lastword = last_word(raw_text)
-        if lastword != "":
-            return lastword
-
-    #    print(f"Parent: {tag.find_parent().name}  Prev: {tag.previous_element.name} Deleted text: {tag.text}")
-    return "Unknown"
