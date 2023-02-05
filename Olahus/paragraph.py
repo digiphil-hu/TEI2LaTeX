@@ -1,12 +1,9 @@
-from Olahus.normalize import previous_word, text_shortener
+from Olahus.normalize import previous_word, text_shortener, hi_rend, person_place_name, milestone_p, gap
 from normalize import normalize_text
 
 
 def paragraph(para, filename):  # <gap>
-
     # TODO: What would happen to the <gap>s?
-    # for g in para.find_all("gap"):
-    #     g.string = r"<\ldots{}>"
 
     # Quote keywords extraction
     q_keyword_dict = {}
@@ -20,24 +17,34 @@ def paragraph(para, filename):  # <gap>
         q_keyword = text_shortener(q_text)
         q_keyword_dict[index] = q_keyword
 
-    para = normalize_text(para, {"corresp"})
-
     # <add type=insert>
-    # It runs only if <add type=insert> parent is <p>
+    # It runs only if <add type=insert> parent is <p>, <quote> or <seg>
     for add_in in para.find_all("add", attrs={"type": "insert"}):
         add_par = add_in.find_parent().name
         if add_par == "p" or add_par == "quote" or add_par == "seg":
             if add_in.find("add", attrs={"type": "insert"}) is not None:
                 add_ins(add_in.find("add", attrs={"type": "insert"}))
+            else:
+                add_ins(add_in)
 
     # <app> tag
     # apparatus(para)
 
     # <del> and no <add>
-    just_del(para)
+    # It runs only if <del>'s parent is <p>, <quote> or <seg>
+    for del_alone in para.find_all("del"):
+        if not str(del_alone.next_sibling).startswith("<add"):
+            del_alone_par = del_alone.find_parent().name
+            if del_alone_par == "p" or del_alone_par == "quote" or del_alone_par == "seg":
+                just_del(del_alone)
 
-    # <del><add>
-    del_add(para)
+    # <del><add corr>
+    # It runs only if <del><add corr>'s parent is <p>, <quote> or <seg>
+    for del_tag in para.find_all("del"):
+        if str(del_tag.next_sibling).startswith("<add"):
+            del_add_par = del_tag.find_parent().name
+            if del_add_par == "p" or del_add_par == "quote" or del_add_par == "seg":
+                del_add(del_tag)
 
     # <choice> <supplied>
     for ch in para.find_all("choice"):
@@ -81,17 +88,29 @@ def paragraph(para, filename):  # <gap>
         s.unwrap()
 
     # note critic is found under: TODO: <add>, <seg>, <quote>, <supplied>.
-    # Now let's run on the remaining notes: directly under <p>
-    para = note_critic(para)
+    # Now let's run on the remaining notes: directly under <p> or enywhere else
+    for note_tag in para.find_all("note", attrs={"type": "critic"}):
+        note_critic(note_tag)
 
-    # "hi" and "names" that are not processed freviously
-    para = normalize_text(para, {"milestone", "hi", "names"})
+    para = person_place_name(para)
+    para = hi_rend(para)
+    para = milestone_p(para)
+    para = gap(para)
 
     return para
 
 
 def add_ins(add_ins_tag):
-    # The note_critic method changes processes "hi" and "names" so it must preceed "hi" and "names"
+    for choice in add_ins_tag.find_all("choice"):
+        choice_supplied(add_ins_tag)
+    for del_tag in add_ins_tag.find_all("del"):
+        just_del(add_ins_tag)
+
+    add_ins_tag = gap(add_ins_tag)
+    add_ins_tag = person_place_name(add_ins_tag)
+    add_ins_tag = hi_rend(add_ins_tag)
+    add_ins_tag = note_critic(add_ins_tag)
+
     a_text = add_ins_tag.text
     a_cor = add_ins_tag["corresp"]
     a_new = r"\edtext{" + a_text + r"}{\Afootnote{\textit{" + a_cor + " add.&addins&}}}"
@@ -99,37 +118,37 @@ def add_ins(add_ins_tag):
     add_ins_tag.unwrap()
 
 
-def del_add(para):
-    # Normalized. Note critic?
-    for del_tag in para.find_all("del"):
-        if str(del_tag.next_sibling).startswith("<add"):
-            del_tag_norm = normalize_text(del_tag, {"hi", "names"})
-            d_cor = del_tag["corresp"]
-            d_text = del_tag_norm.text
-            a = del_tag.next_sibling
-            a = note_critic(a)
-            a_norm = normalize_text(a, {"hi", "names"})
-            a_cor = a["corresp"]
-            a_text = a_norm.text
-            if d_cor == a_cor:
-                d_new = r"\edtext{" + a_text + r"}{\Afootnote{\textit{" + a_cor + " corr. ex} " + d_text + "&deladd&}}"
-            del_tag.string = d_new
-            a.extract()
-            del_tag.unwrap()
+def del_add(del_add_tag):
+    for choice in del_add_tag.find_all("choice"):
+        choice_supplied(del_add_tag)
+    del_tag_norm = normalize_text(del_tag, {"hi", "names"})
+    d_cor = del_tag["corresp"]
+    d_text = del_tag_norm.text
+    a = del_tag.next_sibling
+    a = note_critic(a)
+    a_norm = normalize_text(a, {"hi", "names"})
+    a_cor = a["corresp"]
+    a_text = a_norm.text
+    if d_cor == a_cor:
+        d_new = r"\edtext{" + a_text + r"}{\Afootnote{\textit{" + a_cor + " corr. ex} " + d_text + "&deladd&}}"
+    del_tag.string = d_new
+    a.extract()
+    del_tag.unwrap()
 
 
-def just_del(para):
+def just_del(del_alone):
     # No note_critic under <del>
-    for del_alone in para.find_all("del"):
-        if not str(del_alone.next_sibling).startswith("<add"):
-            lastword = previous_word(del_alone)
-            del_alone_norm = normalize_text(del_alone, {"hi", "names"})
-            d_cor = del_alone["corresp"]
-            d_text = del_alone_norm.text
-            d_new = r"\edtext{" + r"}{\lemma{" + lastword + r"}\Afootnote{\textit{" + d_cor + " del. ex }" \
-                    + lastword + " " + d_text + " &delalone&}}"
-            del_alone.string = d_new
-            del_alone.unwrap()
+    lastword = previous_word(del_alone)
+
+    del_alone = hi_rend(del_alone)
+    del_alone = person_place_name(del_alone)
+
+    d_cor = del_alone["corresp"]
+    d_text = del_alone.text
+    d_new = r"\edtext{" + r"}{\lemma{" + lastword + r"}\Afootnote{\textit{" + d_cor + " del. ex }" \
+            + lastword + " " + d_text + " &delalone&}}"
+    del_alone.string = d_new
+    del_alone.unwrap()
 
 
 def apparatus(para):
@@ -158,11 +177,14 @@ def apparatus(para):
 
 
 def note_critic(tag):
-    for note_tag in tag.find_all("note", attrs={"type": "critic"}):
-        note_tag_norm = normalize_text(note_tag, {"hi", "names"})
-        note_text = "\\footnoteA{" + note_tag_norm.text + "&notecritic&}"
-        note_tag.string = note_text
-        note_tag.unwrap()
+    # The only child of note critic is <hi>
+    tag = hi_rend(tag)
+    tag = person_place_name(tag)
+    if tag.find_child() is not None:
+        print("ERROR: Note critic has child", tag.find_child())
+    note_text = r"\footnoteA{" + tag.text + "&notecritic&}"
+    tag.string = note_text
+    tag.unwrap()
     return tag
 
 

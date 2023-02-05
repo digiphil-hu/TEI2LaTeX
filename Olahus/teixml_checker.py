@@ -144,15 +144,21 @@ def main(xml):
         #             # else:
         #             #     print(del_alone.find_previous_sibling().name, "-", del_alone.find_previous_sibling().text)
 
-        for para in sp.body.find_all("p"):
-            for add_in in para.find_all("add", attrs={"type": "insert"}):
-                if add_in.find_parent().name == "p" or add_in.find_parent().name == "quote":
-                    print(filename, add_in.find_parent().name)
-                else:
-                    continue
-                    # print("Parent different")
+        # for para in sp.body.find_all("p"):
+        #     for add_in in para.find_all("add", attrs={"type": "insert"}):
+        #         if add_in.find_parent().name == "p" or add_in.find_parent().name == "quote":
+        #             print(filename, add_in.find_parent().name)
+        #         else:
+        #             continue
+        #             # print("Parent different")
 
+        for name in sp.body.find_all("add", {"type": "insert"}):
+            for nested in name.find_all():
+                print(nested.name)
 
+        # for name in sp.body.find_all("add"):
+        #     for nested in name.find_all():
+        #         print(nested.name)
 
         """
         # Quote print
