@@ -1,4 +1,4 @@
-from Olahus.normalize import previous_word
+from Olahus.normalize import previous_word, text_shortener
 from normalize import normalize_text
 
 
@@ -11,24 +11,25 @@ def paragraph(para, filename):  # <gap>
     # Quote keywords extraction
     q_keyword_dict = {}
     for index, quote_keyword in enumerate(para.find_all("quote")):
-        q = normalize_text(quote_keyword, {})
+        q = normalize_text(quote_keyword, {"nothing"})
         if q.find("del") is not None:
             q.find("del").extract()
         if q.find("orig") is not None:
             q.find("orig").extract()
         q_text = q.text
-        q_text = q_text.rstrip().lstrip()
-        q_list = q_text.split(" ")
-        if len(q_list) > 2:
-            firstword = q_list[0].rstrip(".,?!")
-            lastword = q_list[-1].rstrip(".,?!")
-            q_keyword = firstword + r"\ldots{} " + lastword
-            q_keyword_dict[index] = q_keyword
-        if len(q_list) <= 2:
-            q_keyword = q_text.rstrip(".,")
-            q_keyword_dict[index] = q_keyword
+        q_keyword = text_shortener(q_text)
+        q_keyword_dict[index] = q_keyword
 
     para = normalize_text(para, {"corresp"})
+
+    # <add type=insert>
+    # It runs only if <add type=insert> parent is <p>
+    for add_in in para.find_all("add", attrs={"type": "insert"}):
+        add_par = add_in.find_parent().name
+        if add_par == "p" or add_par == "quote" or add_par == "seg":
+            if filename == "15491203_2.xml":
+                print(add_in)
+
 
     # <app> tag
     # apparatus(para)
@@ -38,9 +39,6 @@ def paragraph(para, filename):  # <gap>
 
     # <del><add>
     del_add(para)
-
-    # <add type=insert>
-    add_ins(para)
 
     # <choice> <supplied>
     for ch in para.find_all("choice"):
@@ -93,15 +91,12 @@ def paragraph(para, filename):  # <gap>
     return para
 
 
-def add_ins(para):
-    for _ in range(2):
-        for add_in in para.find_all("add", attrs={"type": "insert"}):
-            if len(add_in.find_all("add")) == 0:
-                a_text = add_in.text
-                a_cor = add_in["corresp"]
-                a_new = r"\edtext{" + a_text + r"}{\Afootnote{\textit{" + a_cor + " add.&addins&}}}"
-                add_in.string = a_new
-                add_in.unwrap()
+def add_ins(add_ins_tag):
+    a_text = add_ins_tag.text
+    a_cor = add_ins_tag["corresp"]
+    a_new = r"\edtext{" + a_text + r"}{\Afootnote{\textit{" + a_cor + " add.&addins&}}}"
+    add_ins_tag.string = a_new
+    add_ins_tag.unwrap()
 
 
 def del_add(para):

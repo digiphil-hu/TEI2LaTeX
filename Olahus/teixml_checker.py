@@ -15,7 +15,7 @@ def normalize_text(string):
 
 
 def main(xml):
-    print(xml.lstrip("/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML"))
+    filename = xml.lstrip("/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML")
     with open(xml, "r", encoding="utf8") as f_xml:
         sp = BeautifulSoup(f_xml, "xml")
         sp1 = normalize_text(str(sp))
@@ -52,7 +52,7 @@ def main(xml):
 
         # p in p
         for p_p in sp.p.find_all("p"):
-            print("<p> alatt <p>: ", xml)
+            print("ERROR: p\p: ", xml)
 
         # <quote><p>; <quote><quote>; <quote> + MISSING sibling
         for q in sp.find_all("quote"):
@@ -73,7 +73,24 @@ def main(xml):
         # del alatt del
         for d1 in sp.find_all("del"):
             for d2 in d1.find_all("del"):
-                print("Del alatt del: ", xml)
+                print("ERROR: del/del: ", xml)
+
+        for para in sp.find_all("p"):
+            para_parent = para.find_parent()
+            if para_parent.name == "body" and para_parent.find_parent().name != "floatingText":
+                print("ERROR: text/body/p in:", filename)
+
+        # Remove <persName> if it contains <add> or <del> tags.
+        for pers in sp.body.find_all("persName"):
+            for nested in pers.find_all():
+                try:
+                    if nested.name == "add" or nested.name == "del":
+                        pers.unwrap()
+                    if nested.name == "choice":
+                        print("ERROR: <choice> as child of <persName>")
+                except ValueError:
+                    continue
+
 
         # for n in sp.body.find_all("note"):
         #     try:
@@ -127,7 +144,13 @@ def main(xml):
         #             # else:
         #             #     print(del_alone.find_previous_sibling().name, "-", del_alone.find_previous_sibling().text)
 
-
+        for para in sp.body.find_all("p"):
+            for add_in in para.find_all("add", attrs={"type": "insert"}):
+                if add_in.find_parent().name == "p" or add_in.find_parent().name == "quote":
+                    print(filename, add_in.find_parent().name)
+                else:
+                    continue
+                    # print("Parent different")
 
 
 

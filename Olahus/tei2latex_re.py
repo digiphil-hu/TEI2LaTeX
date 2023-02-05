@@ -12,7 +12,7 @@ from paragraph import paragraph
 from header import header2latex
 
 
-def text2latex(soup, num):
+def text2latex(soup, letternum, filename):
     text_latex = ""
 
     # Regesta: insert <floatingText> into latex string and then remove tag from soup object
@@ -27,13 +27,13 @@ def text2latex(soup, num):
     text_latex += "\n" \
                   + r"\selectlanguage{latin}" + "\n" \
                   + r"\makeatletter" + "\n" \
-                  + r"\renewcommand*{\footfootmarkA}{" + num + r"\,\textsuperscript{\@nameuse{@thefnmarkA}\,}}" \
+                  + r"\renewcommand*{\footfootmarkA}{" + letternum + r"\,\textsuperscript{\@nameuse{@thefnmarkA}\,}}" \
                   + r"\makeatother" + "\n" \
                   + r"\beginnumbering" + "\n" \
                   + r"\firstlinenum{5}" + "\n" \
                   + r"\linenumincrement{5}" + "\n" \
-                  + r"\Xtxtbeforenumber[A]{" + num + ",}" + "\n" \
-                  + r"\Xtxtbeforenumber[B]{" + num + ",}" + "\n"
+                  + r"\Xtxtbeforenumber[A]{" + letternum + ",}" + "\n" \
+                  + r"\Xtxtbeforenumber[B]{" + letternum + ",}" + "\n"
 
     # If <quote> not under <p> => <p><quote>
     for q in soup.find_all("quote"):
@@ -43,11 +43,11 @@ def text2latex(soup, num):
             p_q_note = BeautifulSoup("<p>" + str(q) + str(note_q) + "</p>", "xml")
             q.replace_with(p_q_note)
             note_q.extract()
-            soup = normalize_text(soup, {"xml"})
+            soup = normalize_text(soup, {"xml"})  # TODO:Do we need this step?
 
     # Paragraph
     for p in soup.body.div.find_all("p"):
-        p = paragraph(p)
+        p = paragraph(p, filename=filename)
         text_latex += "\n" \
                       + r"\pstart" + "\n" \
                       + p.text + "\n" \
@@ -62,7 +62,7 @@ def text2latex(soup, num):
                       + r"\pend" + "\n"
 
         for p in div.find_all("p"):
-            p = paragraph(p)
+            p = paragraph(p, filename=filename)
             text_latex += "\n" \
                           + r"\pstart" + "\n" \
                           + p.text + "\n" \
@@ -116,7 +116,7 @@ def main(xml, latex):
             title_num = h[1]
 
             # Write text
-            t = text2latex(sp.find("text"), title_num)
+            t = text2latex(sp.find("text"), letternum=title_num, filename=file_name)
             f_latex.write(t)
 
 

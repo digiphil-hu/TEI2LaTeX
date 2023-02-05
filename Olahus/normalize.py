@@ -163,3 +163,16 @@ def previous_word(del_a):
         return lastword
     else:
         return "VEZÉRSZÓ"
+
+
+def text_shortener(text):
+    text = text.rstrip().lstrip()
+    text = re.sub("[\d,\.();!?:\[\]†]+", "", text)
+    text_list = text.split(" ")
+    if len(text_list) > 2:
+        firstword = text_list[0].rstrip(".,?!")
+        lastword = text_list[-1].rstrip(".,?!")
+        text_keyword = firstword + r"\ldots{} " + lastword
+    if len(text_list) <= 2:
+        text_keyword = text.rstrip(".,")
+    return text_keyword
