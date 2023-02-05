@@ -40,16 +40,18 @@ def paragraph(para, filename):  # <gap>
 
     # <del><add corr>
     # It runs only if <del><add corr>'s parent is <p>, <quote> or <seg>
-    for del_tag in para.find_all("del"):
-        if str(del_tag.next_sibling).startswith("<add"):
-            del_add_par = del_tag.find_parent().name
-            if del_add_par == "p" or del_add_par == "quote" or del_add_par == "seg":
-                del_add(del_tag)
+    for corr_tag in para.find_all("add", {"type": "corr"}):
+        if corr_tag.previous_sibling.name == "del":
+            corr_tag_par = corr_tag.find_parent().name
+            if corr_tag_par == "p" or corr_tag_par == "quote" or corr_tag_par == "seg":
+                del_add(corr_tag)
+        else:
+            print("ERROR: add corr without preceding del", corr_tag)
 
     # <choice> <supplied>
     for ch in para.find_all("choice"):
         ch = choice_supplied(ch)
-        ch.unwrap()
+
 
     # <quot>
     for index, quote_actual in enumerate(para.find_all("quote")):
@@ -118,22 +120,29 @@ def add_ins(add_ins_tag):
     add_ins_tag.unwrap()
 
 
-def del_add(del_add_tag):
-    for choice in del_add_tag.find_all("choice"):
-        choice_supplied(del_add_tag)
-    del_tag_norm = normalize_text(del_tag, {"hi", "names"})
-    d_cor = del_tag["corresp"]
-    d_text = del_tag_norm.text
-    a = del_tag.next_sibling
-    a = note_critic(a)
-    a_norm = normalize_text(a, {"hi", "names"})
-    a_cor = a["corresp"]
-    a_text = a_norm.text
-    if d_cor == a_cor:
-        d_new = r"\edtext{" + a_text + r"}{\Afootnote{\textit{" + a_cor + " corr. ex} " + d_text + "&deladd&}}"
-    del_tag.string = d_new
-    a.extract()
-    del_tag.unwrap()
+def del_add(add_corr):
+    # Child of <del>: only <gap>
+    # Child of <add corr>: names, notes, gap, <del>
+    del_corr = add_corr.previous_sibling
+    del_corr = gap(del_corr)
+    del_corr_name = del_corr["corresp"]
+    add_corr_name = add_corr["corresp"]
+    short_text = text_shortener(add_corr.text)
+    for del_in_add_corr in add_corr.find_all("del"):
+        just_del(add_corr)
+    add_corr = gap(add_corr)
+    add_corr = person_place_name(add_corr)
+    add_corr = hi_rend(add_corr)
+    add_corr = note_critic(add_corr)
+    if del_corr_name == add_corr_name:
+        add_new = r"\edtext{" + add_corr.text + r"}{\lemma{" + short_text + r"}\Afootnote{\textit{" \
+                  + add_corr_name + " corr. ex} " + del_corr.text + "&deladd&}}"
+    else:
+        print("ERROR: del and add corresp do not match")
+        add_new = ""
+    add_corr.string = add_new
+    del_corr.extract()
+    add_corr.unwrap()
 
 
 def just_del(del_alone):
@@ -202,6 +211,7 @@ def choice_supplied(choice):
         ch_new = r"\edtext{" + sup_text + r"}{\Afootnote{\textit{corr. ex} " + orig_text + "}}"
         choice.supplied.extract()
         choice.string = ch_new
+        choice.unwrap()
     return choice
 
 

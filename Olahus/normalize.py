@@ -11,6 +11,7 @@ def normalize_text(soup, what_to_do):
         soup_str = re.sub("corresp=\"Olahus\"", "corresp=\"O\"", soup_str)
         soup_str = re.sub("corresp=\"editor\"", "corresp=\" \"", soup_str)
         soup_str = re.sub("corresp=\"scriba\"", "corresp=\"scr\"", soup_str)
+        soup_str = re.sub(r'''(</del>)\s+(<add corresp="[a-zA-Z]+" type="corr")''', r"\1\2", soup_str)
 
     if "all" in what_to_do:
         # soup_str = soup_str.replace("[", "{[}")

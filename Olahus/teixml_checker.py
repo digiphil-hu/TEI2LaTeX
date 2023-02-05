@@ -11,6 +11,7 @@ def normalize_text(string):
     string = re.sub('\s+', " ", string)
     string = re.sub("\[", "{[}", string)
     string = re.sub("\]", "{]}", string)
+    string = re.sub(r'''(</del>)\s+(<add corresp="[a-zA-Z]+" type="corr")''', r"\1\2", string)
     return string
 
 
@@ -152,13 +153,21 @@ def main(xml):
         #             continue
         #             # print("Parent different")
 
-        for name in sp.body.find_all("add", {"type": "insert"}):
-            for nested in name.find_all():
-                print(nested.name)
+        # for name in sp.body.find_all("add", {"type": "corr"}):
+        #     name_prev = name.find_previous("del")
+        #     print(name_prev.name)
+        #     for nested in name_prev.find_all():
+        #         print(nested)
 
-        # for name in sp.body.find_all("add"):
-        #     for nested in name.find_all():
-        #         print(nested.name)
+        # for nam in sp.body.find_all("add", {"type": "corr"}):
+        #     for nested in nam.find_all():
+        #         if nested.name == "del":
+        #             print(filename, nam)
+
+        for ch in sp.body.find_all("choice"):
+            if ch.find_parent().name != "p" and ch.find_parent().name != "quote" and ch.find_parent().name != "l":
+                print(filename, "\t", ch.find_parent())
+
 
         """
         # Quote print
@@ -178,6 +187,7 @@ def main(xml):
                 else:
                     f_doc.write("Filename: " + xml_short + "\n" + "Quote: " + quote + "\n" + "Note missing!" + "\n\n")
         """
+
 
 if __name__ == '__main__':
     dir_name_in = "/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML"
