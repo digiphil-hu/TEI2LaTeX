@@ -67,7 +67,10 @@ def latex_escape(string):
 def hi_rend(input):
     # hi rend. As italic, super and small-cap may be under bold or italic, two cycles are needed.
     # if input == str, soup is made. If soup object, it is processed.
+    input_type = ""
     if type(input) == str:
+        input_type = "string"
+        print("Input:", input_type)
         input = BeautifulSoup(input, "xml")
 
     for hi in input.find_all("hi"):
@@ -105,11 +108,16 @@ def hi_rend(input):
                 print("<hi><hi> error:", hi)
             hi.unwrap()
 
-    return str(input)
+    if input_type == "string":
+        return str(input)
+    else:
+        return input
 
 
 def person_place_name(input):
+    input_type = ""
     if type(input) == str:
+        input_type = "string"
         input = BeautifulSoup(input, "xml")
     for name in input.find_all("persName"):
         name.string = "\edindex[pers]{" + name.text + "}" + name.text
@@ -117,12 +125,16 @@ def person_place_name(input):
     for place in input.find_all("placeName"):
         place.string = "\edindex[place]{" + place.text + "}" + place.text
         place.unwrap()
-    return str(input)
+    if input_type == "string":
+        return str(input)
+    else:
+        return input
 
 def gap(input):
     for g in input.find_all("gap"):
         g.string = r"<\ldots{}>"
         g.unwrap()
+    return input
 
 def previous_word(del_a):
     taglist = ["persName", "placeName", "add"]

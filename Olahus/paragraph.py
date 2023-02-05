@@ -52,7 +52,6 @@ def paragraph(para, filename):  # <gap>
     for ch in para.find_all("choice"):
         ch = choice_supplied(ch)
 
-
     # <quot>
     for index, quote_actual in enumerate(para.find_all("quote")):
         quote_note = para.quote.next_sibling
@@ -99,6 +98,7 @@ def paragraph(para, filename):  # <gap>
     para = milestone_p(para)
     para = gap(para)
 
+    print(filename, para)
     return para
 
 
@@ -189,8 +189,10 @@ def note_critic(tag):
     # The only child of note critic is <hi>
     tag = hi_rend(tag)
     tag = person_place_name(tag)
-    if tag.find_child() is not None:
+    try:
         print("ERROR: Note critic has child", tag.find_child())
+    except TypeError:
+        a = 1  # TODO
     note_text = r"\footnoteA{" + tag.text + "&notecritic&}"
     tag.string = note_text
     tag.unwrap()
