@@ -80,7 +80,7 @@ def text2latex(soup, letternum, filename):
 
 def main(xml, latex):
     file_name = xml.lstrip("/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML")
-    # print(filename)
+    print(file_name)
     with open(xml, "r", encoding="utf8") as f_xml:
         sp = BeautifulSoup(f_xml, "xml")
 

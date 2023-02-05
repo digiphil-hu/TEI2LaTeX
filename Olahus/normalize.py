@@ -70,7 +70,6 @@ def hi_rend(input):
     input_type = ""
     if type(input) == str:
         input_type = "string"
-        print("Input:", input_type)
         input = BeautifulSoup(input, "xml")
 
     for hi in input.find_all("hi"):
