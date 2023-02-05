@@ -52,6 +52,7 @@ def latex_escape(string):
     string = string.replace("%", r"\%")
     string = string.replace("[", "{[}")
     string = string.replace("]", "{]}")
+    string = string.replace("&", "\&")
     string = string.replace(r"{[}BEKEZDÉSHATÁR{]}", "\n\\pend\n\n\\pstart\n")
 
     # Replace false escapea

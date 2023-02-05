@@ -209,7 +209,7 @@ def choice_supplied(choice):
     else:
         orig_text = choice.orig.text
         sup_text = choice.supplied.text
-        ch_new = r"\edtext{" + sup_text + r"}{\Afootnote{\textit{corr. ex} " + orig_text + "}}"
+        ch_new = r"\edtext{" + sup_text + r"}{\Afootnote{\textit{corr. ex} " + orig_text + "&choice&}}"
         choice.supplied.extract()
         choice.string = ch_new
         choice.unwrap()
