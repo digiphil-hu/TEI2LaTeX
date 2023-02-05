@@ -27,9 +27,8 @@ def paragraph(para, filename):  # <gap>
     for add_in in para.find_all("add", attrs={"type": "insert"}):
         add_par = add_in.find_parent().name
         if add_par == "p" or add_par == "quote" or add_par == "seg":
-            if filename == "15491203_2.xml":
-                print(add_in)
-
+            if add_in.find("add", attrs={"type": "insert"}) is not None:
+                add_ins(add_in.find("add", attrs={"type": "insert"}))
 
     # <app> tag
     # apparatus(para)
@@ -92,6 +91,7 @@ def paragraph(para, filename):  # <gap>
 
 
 def add_ins(add_ins_tag):
+    # The note_critic method changes processes "hi" and "names" so it must preceed "hi" and "names"
     a_text = add_ins_tag.text
     a_cor = add_ins_tag["corresp"]
     a_new = r"\edtext{" + a_text + r"}{\Afootnote{\textit{" + a_cor + " add.&addins&}}}"
@@ -100,7 +100,7 @@ def add_ins(add_ins_tag):
 
 
 def del_add(para):
-    # Norma
+    # Normalized. Note critic?
     for del_tag in para.find_all("del"):
         if str(del_tag.next_sibling).startswith("<add"):
             del_tag_norm = normalize_text(del_tag, {"hi", "names"})

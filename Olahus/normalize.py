@@ -71,9 +71,12 @@ def latex_escape(string):
     return string
 
 
-def hi_rend(string):
+def hi_rend(input):
     # hi rend. As italic, super and small-cap may be under bold or italic, two cycles are needed.
-    soup = BeautifulSoup(string, "xml")
+    # if input == str, soup is made. If soup object, it is processed.
+    if type(input) == string:
+        input = BeautifulSoup(input, "xml")
+
     for hi in soup.find_all("hi"):
         if len(hi.find_all("hi")) == 0:  # If there are no <hi> under <hi>
             hi_text = hi.text
