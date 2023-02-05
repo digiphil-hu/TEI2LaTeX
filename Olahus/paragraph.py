@@ -2,7 +2,7 @@ from Olahus.normalize import previous_word
 from normalize import normalize_text
 
 
-def paragraph(para):  # <gap>
+def paragraph(para, filename):  # <gap>
 
     # TODO: What would happen to the <gap>s?
     # for g in para.find_all("gap"):

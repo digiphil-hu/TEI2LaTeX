@@ -79,7 +79,8 @@ def text2latex(soup, num):
 
 
 def main(xml, latex):
-    # print(xml.lstrip("/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML"))
+    file_name = xml.lstrip("/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML")
+    # print(filename)
     with open(xml, "r", encoding="utf8") as f_xml:
         sp = BeautifulSoup(f_xml, "xml")
 
@@ -96,6 +97,17 @@ def main(xml, latex):
         # Delete milestone unit pagebreak
         for pb in sp.body.find_all("milestone", {"unit": "pb"}):
             pb.extract()
+
+        # Remove <persName> if it contains <add> or <del> tags.
+        for pers in sp.body.find_all("persName"):
+            for nested in pers.find_all():
+                try:
+                    if nested.name == "add" or nested.name == "del":
+                        pers.unwrap()
+                    if nested.name == "choice":
+                        print("ERROR: <choice> as child of <persName>")
+                except ValueError:
+                    continue
 
         with open("latex2.tex", "a", encoding="utf8") as f_latex:
             # Write header

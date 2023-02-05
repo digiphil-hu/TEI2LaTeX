@@ -15,7 +15,7 @@ def normalize_text(string):
 
 
 def main(xml):
-    # print(xml.lstrip("/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML"))
+    print(xml.lstrip("/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML"))
     with open(xml, "r", encoding="utf8") as f_xml:
         sp = BeautifulSoup(f_xml, "xml")
         sp1 = normalize_text(str(sp))
@@ -125,13 +125,13 @@ def main(xml):
         #             # if del_alone.find_previous_sibling() is None:
         #             #     print("miafasz?")
         #             # else:
-        #             #     print(del_alone.find_previous_sibling().name, "-----", del_alone.find_previous_sibling().text)
+        #             #     print(del_alone.find_previous_sibling().name, "-", del_alone.find_previous_sibling().text)
 
-        for name in sp.body.find_all("persName"):
-            for nested in name.find_all():
-                print(nested)
 
-"""
+
+
+
+        """
         # Quote print
         xml_short = xml.split("/")[-1]
         with open("quote.txt", "a", encoding="utf8") as f_doc:
@@ -148,7 +148,7 @@ def main(xml):
                     f_doc.write("Filename: " + xml_short + "\n" + "Quote: " + quote + "\n" + "Note: " + note + "\n\n")
                 else:
                     f_doc.write("Filename: " + xml_short + "\n" + "Quote: " + quote + "\n" + "Note missing!" + "\n\n")
-"""
+        """
 
 if __name__ == '__main__':
     dir_name_in = "/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML"
