@@ -24,12 +24,16 @@ def header2latex(soup):
     place_of_creation = normalize_text(place_of_creation, {"header"}).text
 
     # Title including response to, has response
-    resp_to = ""
-    has_resp = ""
+    resp_to = "~~~"
+    has_resp = "~~~"
     if soup.find("relatedItem", attrs={"type": "responseTo"}) is not None:
         resp_to = soup.find("relatedItem", attrs={"type": "responseTo"}).bibl.ref.text
+        if resp_to == "":
+            resp_to = "~~~"
     if soup.find("relatedItem", attrs={"type": "hasResponse"}) is not None:
         has_resp = soup.find("relatedItem", attrs={"type": "hasResponse"}).bibl.ref.text
+        if has_resp == "":
+            has_resp = "~~~"
 
     header_str += r"\section*{\textsubscript{" + resp_to + "}" \
                   + r"\textbf{" + title_num + "}"\

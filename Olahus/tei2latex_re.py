@@ -50,7 +50,7 @@ def text2latex(soup, letternum, filename):
     # Paragraph
     for p in soup.body.div.find_all("p"):
         p = paragraph(p, filename=filename)
-        if len(p.text) > 0:
+        if len(p.text.replace(" ", "")) > 0:
             text_latex += "\n" \
                           + r"\pstart" + "\n" \
                           + p.text + "\n" \
@@ -66,7 +66,7 @@ def text2latex(soup, letternum, filename):
 
         for p in div.find_all("p"):
             p = paragraph(p, filename=filename)
-            if len(p.text) > 0:
+            if len(p.text.replace(" ", "")) > 0:
                 text_latex += "\n" \
                               + r"\pstart" + "\n" \
                               + p.text + "\n" \
@@ -135,7 +135,6 @@ def main(xml, latex):
                 else:
                     print(f"{file_name}\t{latex_tup[0]-xml_tup[0]}\t{latex_tup[1]-xml_tup[1]}\t"
                           f"{latex_tup[2]-xml_tup[2]}\t{latex_tup[3]-xml_tup[3]}", file=f_log)
-
 
 
 if __name__ == '__main__':
