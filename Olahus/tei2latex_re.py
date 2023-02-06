@@ -7,6 +7,8 @@ import time
 import os
 from bs4 import BeautifulSoup
 import re
+
+from Olahus.count import count_xml_body, count_latex_body
 from normalize import normalize_text, latex_escape
 from paragraph import paragraph
 from header import header2latex
@@ -48,10 +50,11 @@ def text2latex(soup, letternum, filename):
     # Paragraph
     for p in soup.body.div.find_all("p"):
         p = paragraph(p, filename=filename)
-        text_latex += "\n" \
-                      + r"\pstart" + "\n" \
-                      + p.text + "\n" \
-                      + r"\pend" + "\n"
+        if len(p.text) > 0:
+            text_latex += "\n" \
+                          + r"\pstart" + "\n" \
+                          + p.text + "\n" \
+                          + r"\pend" + "\n"
 
         # Letter verso
     for div in soup.find_all("div", attrs={"type": "verso"}):
@@ -63,15 +66,16 @@ def text2latex(soup, letternum, filename):
 
         for p in div.find_all("p"):
             p = paragraph(p, filename=filename)
-            text_latex += "\n" \
-                          + r"\pstart" + "\n" \
-                          + p.text + "\n" \
-                          + r"\pend" + "\n"
+            if len(p.text) > 0:
+                text_latex += "\n" \
+                              + r"\pstart" + "\n" \
+                              + p.text + "\n" \
+                              + r"\pend" + "\n"
 
     text_latex += "\n" \
                   + r"\endnumbering" + "\n\n" \
                   + r"\selectlanguage{english}" + "\n"
-    text_latex += "\n" + r"\pagebreak" + "\n\n"
+    # text_latex += "\n" + r"\pagebreak" + "\n\n"
 
     text_latex = latex_escape(text_latex)
 
@@ -110,14 +114,28 @@ def main(xml, latex):
                     continue
 
         with open("latex2.tex", "a", encoding="utf8") as f_latex:
-            # Write header
-            h = header2latex(sp.teiHeader)
-            f_latex.write(h[0])
-            title_num = h[1]
+            with open("xml_latex_log.tsv", "a", encoding="utf8") as f_log:
+                # Write header
+                h = header2latex(sp.teiHeader)
+                f_latex.write(h[0])
+                title_num = h[1]
 
-            # Write text
-            t = text2latex(sp.find("text"), letternum=title_num, filename=file_name)
-            f_latex.write(t)
+                # Write text
+                t = text2latex(sp.find("text"), letternum=title_num, filename=file_name)
+                f_latex.write(t)
+
+                # Write log
+                xml_tup = count_xml_body(xml)
+                latex_tup = count_latex_body(t)
+                num_set = set()
+                for i in range(4):
+                    num_set.add(latex_tup[i] - xml_tup[i])
+                if len(num_set) == 1 and 0 in num_set:
+                    print("Well done!")
+                else:
+                    print(f"{file_name}\t{latex_tup[0]-xml_tup[0]}\t{latex_tup[1]-xml_tup[1]}\t"
+                          f"{latex_tup[2]-xml_tup[2]}\t{latex_tup[3]-xml_tup[3]}", file=f_log)
+
 
 
 if __name__ == '__main__':
