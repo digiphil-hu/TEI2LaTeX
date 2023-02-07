@@ -1,3 +1,5 @@
+import os
+
 from bs4 import BeautifulSoup
 
 
@@ -23,3 +25,15 @@ def count_latex_body(tex):
 
     latex_tag_num = (num_note_critic, num_add_insert, num_add_corr, num_del_alone, num_choice)
     return latex_tag_num
+
+
+def file_list(path_in):
+    filelist_in = []
+    for dirpath, subdirs, files in os.walk(path_in):
+        for x in files:
+            if x.endswith("sz.xml"):
+                # filelist_in.append(os.path.join(dirpath, x))
+                continue
+            elif x.endswith(".xml"):
+                filelist_in.append(os.path.join(dirpath, x))
+    return filelist_in.sort()

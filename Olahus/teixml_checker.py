@@ -1,5 +1,7 @@
 # What tags are there under <quote>
 # Milestone unit "p": where?
+from Olahus.count import file_list
+
 choice_set_orig = set()
 choice_set_sup = set()
 import os
@@ -178,6 +180,7 @@ def main(xml):
                     choice_set_orig.add(f"{ch.name}/{ch_nest.name}/{ch_nest_nest.name}")
 
         for ch in sp.body.find_all("choice"):
+            print(ch)
             for ch_nest in ch.find_all("supplied"):
                 for ch_nest_nest in ch_nest:
                     choice_set_sup.add(f"{ch.name}/{ch_nest.name}/{ch_nest_nest.name}")
@@ -206,15 +209,8 @@ def main(xml):
 
 if __name__ == '__main__':
     dir_name_in = "/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML"
-    filelist_in = []
-    for dirpath, subdirs, files in os.walk(dir_name_in):
-        for x in files:
-            if x.endswith("sz.xml"):
-                continue
-            elif x.endswith(".xml"):
-                filelist_in.append(os.path.join(dirpath, x))
-    filelist_in.sort()
-    for i in filelist_in:
+    f_list = file_list(dir_name_in)
+    for i in f_list:
         main(i)
     print(choice_set_orig)
     print(choice_set_sup)

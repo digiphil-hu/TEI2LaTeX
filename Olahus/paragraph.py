@@ -50,7 +50,7 @@ def paragraph(para, filename):  # <gap>
 
     # <choice> <supplied>
     for ch in para.find_all("choice"):
-        ch = choice_supplied(ch)
+        choice_supplied(ch)
 
     # <quot>
     for index, quote_actual in enumerate(para.find_all("quote")):
@@ -191,7 +191,7 @@ def note_critic(tag):
         try:
             print("ERROR: Note critic has child", note.find_child())
         except TypeError:
-            a = 1  # TODO
+            pass
         note_text = r"\footnoteA{" + note.text + "&notecritic&}"
         note.string = note_text
         note.unwrap()
@@ -200,21 +200,25 @@ def note_critic(tag):
 
 def choice_supplied(choice):
     # Children of choice: hi, name, gap
-    # Children of orig:
+    # Children of orig: hi, gap. del, add => manual correction needed!
+
+    choice = gap(choice)
+    choice = person_place_name(choice)
+    choice = hi_rend(choice)
     if choice.supplied.corr is not None and choice.supplied.corr.string is not None:
         cor_cor = choice.supplied.corr.text
-        choice.supplied.corr.extract()
         cor_sup = choice.supplied.text
-        choice.string = cor_sup + "<" + cor_cor + ">"
+        choice.string = cor_sup + "<" + cor_cor + "> &choice&"
     elif choice.supplied.corr is not None and choice.supplied.corr.string is None:
-        choice.string = r"<\ldots{}> "
+        choice.string = r"<\ldots{}> &choice&"
     else:
         orig_text = choice.orig.text
         sup_text = choice.supplied.text
-        ch_new = r"\edtext{" + sup_text + r"}{\Afootnote{\textit{corr. ex} " + orig_text + "&choice&}}"
-        choice.supplied.extract()
+        ch_new = r"\edtext{" + sup_text + r"}{\Afootnote{\textit{corr. ex} " + orig_text + " &choice&}}"
         choice.string = ch_new
-        choice.unwrap()
-    return choice
+    # choice.supplied.extract()
+    # choice.orig.extract()
+    print(choice.string)
+    choice.unwrap()
 
 
