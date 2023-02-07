@@ -173,19 +173,19 @@ def main(xml):
         #     if ch.find_parent().name != "p" and ch.find_parent().name != "quote" and ch.find_parent().name != "l":
         #         print(filename, "\t", ch.find_parent())
 
-        # List the childrem of choice
-        for ch in sp.body.find_all("choice"):
-            for ch_nest in ch.find_all("orig"):
-                for ch_nest_nest in ch_nest:
-                    choice_set_orig.add(f"{ch.name}/{ch_nest.name}/{ch_nest_nest.name}")
+        # # List the childrem of choice
+        # for ch in sp.body.find_all("choice"):
+        #     for ch_nest in ch.find_all("orig"):
+        #         for ch_nest_nest in ch_nest:
+        #             choice_set_orig.add(f"{ch.name}/{ch_nest.name}/{ch_nest_nest.name}")
+        #
+        # for ch in sp.body.find_all("choice"):
+        #     print(ch)
+        #     for ch_nest in ch.find_all("supplied"):
+        #         for ch_nest_nest in ch_nest:
+        #             choice_set_sup.add(f"{ch.name}/{ch_nest.name}/{ch_nest_nest.name}")
 
-        for ch in sp.body.find_all("choice"):
-            print(ch)
-            for ch_nest in ch.find_all("supplied"):
-                for ch_nest_nest in ch_nest:
-                    choice_set_sup.add(f"{ch.name}/{ch_nest.name}/{ch_nest_nest.name}")
-
-
+        print("Ennyi choice tag van a levelekben:\t", len(sp.body.find_all("choice")))
 
     """
         # Quote print

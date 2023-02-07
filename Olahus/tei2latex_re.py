@@ -6,7 +6,7 @@
 import time
 from bs4 import BeautifulSoup
 
-from Olahus.count import count_xml_body, count_latex_body, file_list
+from Olahus.count import count_xml_body, count_latex_body, file_list, change_xml_filename
 from normalize import normalize_text, latex_escape
 from paragraph import paragraph
 from header import header2latex
@@ -81,8 +81,8 @@ def text2latex(soup, letternum, filename):
 
 
 def main(xml, latex):
-    file_name = xml.lstrip("/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML")
-    # print(file_name)
+    file_name = xml.lstrip("/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/NEWNAMES/")
+    print(file_name)
     with open(xml, "r", encoding="utf8") as f_xml:
         sp = BeautifulSoup(f_xml, "xml")
 
@@ -125,24 +125,31 @@ def main(xml, latex):
                 xml_tup = count_xml_body(xml)
                 latex_tup = count_latex_body(t)
                 num_set = set()
-                for i in range(4):
+                for i in range(7):
                     num_set.add(latex_tup[i] - xml_tup[i])
                 if len(num_set) == 1 and 0 in num_set:
-                    print("Well done!")
+                    pass
                 else:
                     print(f"{file_name}\t{latex_tup[0]-xml_tup[0]}\t{latex_tup[1]-xml_tup[1]}\t"
-                          f"{latex_tup[2]-xml_tup[2]}\t{latex_tup[3]-xml_tup[3]}", file=f_log)
+                          f"{latex_tup[2]-xml_tup[2]}\t{latex_tup[3]-xml_tup[3]}\t{latex_tup[4]-xml_tup[4]}"
+                          f"\t{latex_tup[5]-xml_tup[5]}\t{latex_tup[6]-xml_tup[6]}",
+                          file=f_log)
 
 
 if __name__ == '__main__':
+    with open("xml_latex_log.tsv", "w", encoding="utf8") as f:
+        print("filename", "\t", "num_note_critic", "\t", "num_add_insert", "\t", "num_add_corr", "\t",
+              "num_del_alone", "\t", "num_choice", "\t", "num_quote", "\t", "num_seg", file=f)
     with open("latex2.tex", "w", encoding="utf8") as f_w:
         with open("begin.txt", "r", encoding="utf8") as f_r:
             start = f_r.read()
             f_w.write(start)
-    dir_name_in = "/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML"
+    dir_name_in = "/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/NEWNAMES/"
     dir_name_out = "Olahus/LaTeX"
     f_list = file_list(dir_name_in)
     begin = time.time()
+    # for i in f_list:
+    #     change_xml_filename(i)
     for i in f_list:
         out = i.replace(dir_name_in, dir_name_out).replace(".xml", ".tex")
         main(i, out)

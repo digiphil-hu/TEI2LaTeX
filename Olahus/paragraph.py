@@ -49,22 +49,32 @@ def paragraph(para, filename):  # <gap>
             print("ERROR: add corr without preceding del", corr_tag)
 
     # <choice> <supplied>
+    # As del and add already processed, choice runs everywhere
     for ch in para.find_all("choice"):
         choice_supplied(ch)
 
-    # <quot>
+    # <quote>
     for index, quote_actual in enumerate(para.find_all("quote")):
         quote_note = para.quote.next_sibling
         if str(quote_note).startswith(r'''<note type="quote"''') is False:
             print("ERROR: Missing <note> after <quote>")
 
+        # children of quote: hi, names, gap, note
+        quote_actual = gap(quote_actual)
+        quote_actual = person_place_name(quote_actual)
+        quote_actual = hi_rend(quote_actual)
+        quote_actual = note_critic(quote_actual)
+
+        # children of quote note: hi
+        quote_note = hi_rend(quote_note)
+
         # Linegroups
         for lg in quote_actual.find_all("lg"):
             lg_new = ""
-            for l in lg.find_all("l"):
-                lg_new += l.text
-                if l.next_sibling is not None:
-                    if l.next_sibling.name == "l":
+            for line in lg.find_all("l"):
+                lg_new += line.text
+                if line.next_sibling is not None:
+                    if line.next_sibling.name == "l":
                         lg_new += r"\\{}"
             lg_new += ""
             lg.string = lg_new
@@ -75,7 +85,7 @@ def paragraph(para, filename):  # <gap>
         # Footnote from quote
         note_new = r"\edtext{" + quote_text \
                    + r"}{\lemma{" + q_keyword_dict[index] \
-                   + r"}\Bfootnote{" + quote_note.text + "}}"
+                   + r"}\Bfootnote{" + quote_note.text + " &quote&}}"
         quote_actual.string = note_new
         quote_actual.unwrap()
         quote_note.extract()
@@ -83,7 +93,7 @@ def paragraph(para, filename):  # <gap>
     # seg type signature
     for s in para.find_all("seg"):
         s_new = r"\begin{flushright}" \
-                + s.text + \
+                + s.text + "&seg&" + \
                 r"\end{flushright}"
         s.string = s_new
         s.unwrap()
@@ -113,7 +123,7 @@ def add_ins(add_ins_tag):
 
     a_text = add_ins_tag.text
     a_cor = add_ins_tag["corresp"]
-    a_new = r"\edtext{" + a_text + r"}{\Afootnote{\textit{" + a_cor + " add.&addins&}}}"
+    a_new = r"\edtext{" + a_text + r"}{\Afootnote{\textit{" + a_cor + " add. &addins&}}}"
     add_ins_tag.string = a_new
     add_ins_tag.unwrap()
 
@@ -134,7 +144,7 @@ def del_add(add_corr):
     add_corr = note_critic(add_corr)
     if del_corr_name == add_corr_name:
         add_new = r"\edtext{" + add_corr.text + r"}{\lemma{" + short_text + r"}\Afootnote{\textit{" \
-                  + add_corr_name + " corr. ex} " + del_corr.text + "&deladd&}}"
+                  + add_corr_name + " corr. ex} " + del_corr.text + " &deladd&}}"
     else:
         print("ERROR: del and add corresp do not match")
         add_new = ""
@@ -192,7 +202,7 @@ def note_critic(tag):
             print("ERROR: Note critic has child", note.find_child())
         except TypeError:
             pass
-        note_text = r"\footnoteA{" + note.text + "&notecritic&}"
+        note_text = r"\footnoteA{" + note.text + " &notecritic&}"
         note.string = note_text
         note.unwrap()
     return tag
@@ -207,18 +217,18 @@ def choice_supplied(choice):
     choice = hi_rend(choice)
     if choice.supplied.corr is not None and choice.supplied.corr.string is not None:
         cor_cor = choice.supplied.corr.text
+        choice.supplied.corr.extract()
         cor_sup = choice.supplied.text
         choice.string = cor_sup + "<" + cor_cor + "> &choice&"
-    elif choice.supplied.corr is not None and choice.supplied.corr.string is None:
+        print(choice.string)
+    elif choice.supplied.corr is not None and choice.supplied.corr.text.replace(" ", "") == "":
         choice.string = r"<\ldots{}> &choice&"
     else:
         orig_text = choice.orig.text
         sup_text = choice.supplied.text
         ch_new = r"\edtext{" + sup_text + r"}{\Afootnote{\textit{corr. ex} " + orig_text + " &choice&}}"
         choice.string = ch_new
-    # choice.supplied.extract()
-    # choice.orig.extract()
-    print(choice.string)
+    # print(choice.string)
     choice.unwrap()
 
 
