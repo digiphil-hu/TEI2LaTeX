@@ -1,5 +1,7 @@
 # What tags are there under <quote>
 # Milestone unit "p": where?
+choice_set_orig = set()
+choice_set_sup = set()
 import os
 import re
 from bs4 import BeautifulSoup
@@ -164,12 +166,25 @@ def main(xml):
         #         if nested.name == "del":
         #             print(filename, nam)
 
+        #  # List each choice whoes parent is not p, quote or seg
+        # for ch in sp.body.find_all("choice"):
+        #     if ch.find_parent().name != "p" and ch.find_parent().name != "quote" and ch.find_parent().name != "l":
+        #         print(filename, "\t", ch.find_parent())
+
+        # List the childrem of choice
         for ch in sp.body.find_all("choice"):
-            if ch.find_parent().name != "p" and ch.find_parent().name != "quote" and ch.find_parent().name != "l":
-                print(filename, "\t", ch.find_parent())
+            for ch_nest in ch.find_all("orig"):
+                for ch_nest_nest in ch_nest:
+                    choice_set_orig.add(f"{ch.name}/{ch_nest.name}/{ch_nest_nest.name}")
+
+        for ch in sp.body.find_all("choice"):
+            for ch_nest in ch.find_all("supplied"):
+                for ch_nest_nest in ch_nest:
+                    choice_set_sup.add(f"{ch.name}/{ch_nest.name}/{ch_nest_nest.name}")
 
 
-        """
+
+    """
         # Quote print
         xml_short = xml.split("/")[-1]
         with open("quote.txt", "a", encoding="utf8") as f_doc:
@@ -186,7 +201,7 @@ def main(xml):
                     f_doc.write("Filename: " + xml_short + "\n" + "Quote: " + quote + "\n" + "Note: " + note + "\n\n")
                 else:
                     f_doc.write("Filename: " + xml_short + "\n" + "Quote: " + quote + "\n" + "Note missing!" + "\n\n")
-        """
+    """
 
 
 if __name__ == '__main__':
@@ -201,3 +216,5 @@ if __name__ == '__main__':
     filelist_in.sort()
     for i in filelist_in:
         main(i)
+    print(choice_set_orig)
+    print(choice_set_sup)

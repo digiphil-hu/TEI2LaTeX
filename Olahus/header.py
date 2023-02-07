@@ -35,13 +35,12 @@ def header2latex(soup):
         if has_resp == "":
             has_resp = "~~~"
 
-    header_str += r"\section*{\textsubscript{" + resp_to + "}" \
-                  + r"\textbf{" + title_num + "}"\
+    header_str += r"\phantomsection\addcontentsline{toc}{section}{" + title_num + r".~" + title_main + "}" \
+                  + r"\section*{\textsubscript{" + resp_to + "}" \
+                  + r"\textbf{" + title_num + "}" \
                   + r"\textsubscript{" + has_resp + r"}\\~\vspace{-1em}\\" \
-                  + sent_pers + " to " + recieved_pers + \
-                  r"\\~\vspace{-1.4em}\\" + place_of_creation + ", " + date_of_creation\
-                  + r"}\addcontentsline{toc}{section}{" \
-                  + title_num + r".~" + title_main + "}" + "\n"
+                  + sent_pers + " to " + recieved_pers \
+                  + r"\\~\vspace{-1.4em}\\" + place_of_creation + ", " + date_of_creation + "}" + "\n"
     header_str += r"\renewcommand{\thefootnoteA}{\arabic{footnoteA}}\setcounter{footnoteA}{0}" + "\n\n"
 
     # Insert manuscript description

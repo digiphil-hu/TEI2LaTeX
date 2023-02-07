@@ -199,6 +199,8 @@ def note_critic(tag):
 
 
 def choice_supplied(choice):
+    # Children of choice: hi, name, gap
+    # Children of orig:
     if choice.supplied.corr is not None and choice.supplied.corr.string is not None:
         cor_cor = choice.supplied.corr.text
         choice.supplied.corr.extract()
