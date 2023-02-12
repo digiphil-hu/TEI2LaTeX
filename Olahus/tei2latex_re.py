@@ -35,16 +35,6 @@ def text2latex(soup, letternum, filename):
                   + r"\Xtxtbeforenumber[A]{" + letternum + ",}" + "\n" \
                   + r"\Xtxtbeforenumber[B]{" + letternum + ",}" + "\n"
 
-    # If <quote> not under <p> => <p><quote>
-    for q in soup.find_all("quote"):
-        par = q.find_parent()
-        if par.name == "div":
-            note_q = q.next_sibling
-            p_q_note = BeautifulSoup("<p>" + str(q) + str(note_q) + "</p>", "xml")
-            q.replace_with(p_q_note)
-            note_q.extract()
-            soup = normalize_text(soup, {"xml"})  # TODO:Do we need this step?
-
     # Paragraph
     for p in soup.body.div.find_all("p"):
         p = paragraph(p, filename=filename)
@@ -59,8 +49,7 @@ def text2latex(soup, letternum, filename):
         verso_head = normalize_text(div.head, {"all"})
         text_latex += "\n" \
                       + r"\pstart" + "\n" \
-                      + r"\textit{" + verso_head.text + "}" + "\n" \
-                      + r"\pend" + "\n"
+                      + r"\textit{[" + verso_head.text + "]}" + "\n" \
 
         for p in div.find_all("p"):
             p = paragraph(p, filename=filename)
@@ -110,7 +99,20 @@ def main(xml, latex):
                         print("ERROR: <choice> as child of <persName>")
                 except ValueError:
                     pass
-        with open("latex2.tex", "a", encoding="utf8") as f_latex:
+
+        # If <quote> not under <p> => <p><quote>
+        for q in sp.find_all("quote"):
+            par = q.find_parent()
+            if par.name == "div":
+                note_q = q.next_sibling
+                p_q_note = BeautifulSoup("<p>" + str(q) + str(note_q) + "</p>", "xml")
+                q.replace_with(p_q_note)
+                note_q.extract()
+
+        # Check if note type translation has p child
+        # TODO
+
+        with open("latex2_sz_2023_02_10.tex", "a", encoding="utf8") as f_latex:
             with open("xml_latex_log.tsv", "a", encoding="utf8") as f_log:
                 # Write header
                 h = header2latex(sp.teiHeader)
@@ -140,11 +142,11 @@ if __name__ == '__main__':
     with open("xml_latex_log.tsv", "w", encoding="utf8") as f:
         print("filename", "\t", "num_note_critic", "\t", "num_add_insert", "\t", "num_add_corr", "\t",
               "num_del_alone", "\t", "num_choice", "\t", "num_quote", "\t", "num_seg", file=f)
-    with open("latex2.tex", "w", encoding="utf8") as f_w:
+    with open("latex2_sz_2023_02_10.tex", "w", encoding="utf8") as f_w:
         with open("begin.txt", "r", encoding="utf8") as f_r:
             start = f_r.read()
             f_w.write(start)
-    dir_name_in = "/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/NEWNAMES/"
+    dir_name_in = "/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML2/"
     dir_name_out = "Olahus/LaTeX"
     f_list = file_list(dir_name_in)
     begin = time.time()
@@ -153,7 +155,7 @@ if __name__ == '__main__':
     for i in f_list:
         out = i.replace(dir_name_in, dir_name_out).replace(".xml", ".tex")
         main(i, out)
-    with open("latex2.tex", "a", encoding="utf8") as f_w:
+    with open("latex2_sz_2023_02_10.tex", "a", encoding="utf8") as f_w:
         # End
         f_w.write(r"\end{document}")
     end = time.time()

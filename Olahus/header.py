@@ -68,7 +68,7 @@ def header2latex(soup):
 
     # Insert translation
     for translation in soup.notesStmt.find_all("note", attrs={"type": "translation"}):
-        if translation.text == "" or translation.text == " ":
+        if len(translation.find_all("hi")) == 0:
             continue
         else:
             for p in translation:
