@@ -36,8 +36,8 @@ def file_list(path_in):
     for dirpath, subdirs, files in os.walk(path_in):
         for x in files:
             if x.endswith("sz.xml"):
-                filelist_in.append(os.path.join(dirpath, x))
-                # pass
+                # filelist_in.append(os.path.join(dirpath, x))
+                pass
             elif x.endswith(".xml"):
                 filelist_in.append(os.path.join(dirpath, x))
     filelist_in.sort()

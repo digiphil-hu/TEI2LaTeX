@@ -24,17 +24,20 @@ def header2latex(soup):
     place_of_creation = normalize_text(place_of_creation, {"header"}).text
 
     # Title including response to, has response
-    resp_to = "~~~"
-    has_resp = "~~~"
-    if soup.find("relatedItem", attrs={"type": "responseTo"}) is not None:
-        resp_to = soup.find("relatedItem", attrs={"type": "responseTo"}).bibl.ref.text
-        if resp_to == "":
-            resp_to = "~~~"
-    if soup.find("relatedItem", attrs={"type": "hasResponse"}) is not None:
-        has_resp = soup.find("relatedItem", attrs={"type": "hasResponse"}).bibl.ref.text
-        if has_resp == "":
-            has_resp = "~~~"
-
+    resp_to_list = []
+    has_resp_list = []
+    for resp_to_tag in soup.find_all("relatedItem", attrs={"type": "responseTo"}):
+        for resp_to_ref in resp_to_tag.find_all("ref"):
+            resp_to_list.append(resp_to_ref.text)
+    resp_to = "-".join(resp_to_list)
+    if len(resp_to) < 3:
+        resp_to = "~~~"
+    for has_resp_tag in soup.find_all("relatedItem", attrs={"type": "hasResponse"}):
+        for has_resp_ref in has_resp_tag.find_all("ref"):
+            has_resp_list.append(has_resp_ref.text)
+    has_resp = "-".join(has_resp_list)
+    if len(has_resp) < 3:
+        has_resp = "~~~"
     header_str += r"\phantomsection\addcontentsline{toc}{section}{" + title_num + r".~" + title_main + "}" \
                   + r"\section*{\textsubscript{" + resp_to + "}" \
                   + r"\textbf{" + title_num + "}" \
@@ -46,8 +49,11 @@ def header2latex(soup):
     # Insert manuscript description
     institution = soup.institution.text
     repository = soup.repository.text
-    folio = soup.measure.text
-    header_str += r"\textit{Manuscript used}: " + institution + ", " + repository + ", fol. " + folio + "\n\n"
+    pag_fol_num = soup.measure.text
+    p_fol = "fol."
+    if soup.measure["unit"] == "pagination":
+        p_fol = "p."
+    header_str += r"\textit{Manuscript used}: " + institution + ", " + repository + ", " + p_fol + pag_fol_num + "\n\n"
 
     # Insert critIntro (Photo copy). Runs only on each <p> in critIntro
     crit_intro = soup.notesStmt.find_all("note", attrs={"type": "critIntro"})
@@ -73,7 +79,7 @@ def header2latex(soup):
         else:
             for p in translation:
                 p = normalize_text(p, {"header"})
-                header_str += p.text + "\n"
+                header_str += p.text + "\n\n"
 
     # Insert critIntro (Notes:). Runs only on each <p> in critIntro
     crit_intro = soup.notesStmt.find_all("note", attrs={"type": "critIntro"})

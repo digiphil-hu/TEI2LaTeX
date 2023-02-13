@@ -69,7 +69,7 @@ def text2latex(soup, letternum, filename):
     return text_latex
 
 
-def main(xml, latex):
+def main(xml):
     file_name = xml.lstrip("/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/NEWNAMES/")
     print(file_name)
     with open(xml, "r", encoding="utf8") as f_xml:
@@ -112,7 +112,7 @@ def main(xml, latex):
         # Check if note type translation has p child
         # TODO
 
-        with open("latex2_sz_2023_02_10.tex", "a", encoding="utf8") as f_latex:
+        with open("latex2.tex", "a", encoding="utf8") as f_latex:
             with open("xml_latex_log.tsv", "a", encoding="utf8") as f_log:
                 # Write header
                 h = header2latex(sp.teiHeader)
@@ -142,11 +142,11 @@ if __name__ == '__main__':
     with open("xml_latex_log.tsv", "w", encoding="utf8") as f:
         print("filename", "\t", "num_note_critic", "\t", "num_add_insert", "\t", "num_add_corr", "\t",
               "num_del_alone", "\t", "num_choice", "\t", "num_quote", "\t", "num_seg", file=f)
-    with open("latex2_sz_2023_02_10.tex", "w", encoding="utf8") as f_w:
+    with open("latex2.tex", "w", encoding="utf8") as f_w:
         with open("begin.txt", "r", encoding="utf8") as f_r:
             start = f_r.read()
             f_w.write(start)
-    dir_name_in = "/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML2/"
+    dir_name_in = "/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/NEWNAMES/"
     dir_name_out = "Olahus/LaTeX"
     f_list = file_list(dir_name_in)
     begin = time.time()
@@ -154,9 +154,9 @@ if __name__ == '__main__':
     #     change_xml_filename(i)
     for i in f_list:
         out = i.replace(dir_name_in, dir_name_out).replace(".xml", ".tex")
-        main(i, out)
-    with open("latex2_sz_2023_02_10.tex", "a", encoding="utf8") as f_w:
-        # End
+        main(i)
+    with open("latex2.tex", "a", encoding="utf8") as f_w:
+        # End of latex doc
         f_w.write(r"\end{document}")
     end = time.time()
     print(end - begin)
