@@ -50,9 +50,9 @@ def header2latex(soup):
     institution = soup.institution.text
     repository = soup.repository.text
     pag_fol_num = soup.measure.text
-    p_fol = "fol."
+    p_fol = "fol. "
     if soup.measure["unit"] == "pagination":
-        p_fol = "p."
+        p_fol = "p. "
     header_str += r"\textit{Manuscript used}: " + institution + ", " + repository + ", " + p_fol + pag_fol_num + "\n\n"
 
     # Insert critIntro (Photo copy). Runs only on each <p> in critIntro
@@ -79,7 +79,8 @@ def header2latex(soup):
         else:
             for p in translation:
                 p = normalize_text(p, {"header"})
-                header_str += p.text + "\n\n"
+                p_text = p.text.replace(":", ": ")
+                header_str += p_text + "\n\n"
 
     # Insert critIntro (Notes:). Runs only on each <p> in critIntro
     crit_intro = soup.notesStmt.find_all("note", attrs={"type": "critIntro"})

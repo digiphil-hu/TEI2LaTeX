@@ -47,14 +47,18 @@ def text2latex(soup, letternum, filename):
     # Letter verso
     for div in soup.find_all("div", attrs={"type": "verso"}):
         verso_head = normalize_text(div.head, {"all"})
-        text_latex += "\n" \
-                      + r"\pstart" + "\n" \
-                      + r"\textit{[" + verso_head.text + "]}" + "\n" \
 
-        for p in div.find_all("p"):
+        for index_p, p in enumerate(div.find_all("p")):
             p = paragraph(p, filename=filename)
             if len(p.text.replace(" ", "")) > 0:
-                text_latex += "\n" \
+                if index_p == 0:
+                    text_latex += "\n" \
+                                  + r"\pstart" + "\n" \
+                                  + r"\textit{[" + verso_head.text + "]}" + "\n" \
+                                  + p.text + "\n" \
+                                  + r"\pend" + "\n"
+                else:
+                    text_latex += "\n" \
                               + r"\pstart" + "\n" \
                               + p.text + "\n" \
                               + r"\pend" + "\n"
@@ -108,9 +112,6 @@ def main(xml):
                 p_q_note = BeautifulSoup("<p>" + str(q) + str(note_q) + "</p>", "xml")
                 q.replace_with(p_q_note)
                 note_q.extract()
-
-        # Check if note type translation has p child
-        # TODO
 
         with open("latex2.tex", "a", encoding="utf8") as f_latex:
             with open("xml_latex_log.tsv", "a", encoding="utf8") as f_log:
