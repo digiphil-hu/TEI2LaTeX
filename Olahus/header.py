@@ -53,7 +53,7 @@ def header2latex(soup):
     p_fol = "fol. "
     if soup.measure["unit"] == "pagination":
         p_fol = "p. "
-    header_str += r"\textit{Manuscript used}: " + institution + ", " + repository + ", " + p_fol + pag_fol_num + "\n\n"
+    header_str += r"\textit{Manuscript used:} " + institution + ", " + repository + ", " + p_fol + pag_fol_num + "\n\n"
 
     # Insert critIntro (Photo copy). Runs only on each <p> in critIntro
     crit_intro = soup.notesStmt.find_all("note", attrs={"type": "critIntro"})
