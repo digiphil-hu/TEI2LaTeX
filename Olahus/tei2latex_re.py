@@ -54,7 +54,7 @@ def text2latex(soup, letternum, filename):
                 if index_p == 0:
                     text_latex += "\n" \
                                   + r"\pstart" + "\n" \
-                                  + r"\textit{[" + verso_head.text + "]}" + "\n" \
+                                  + r"[" + verso_head.text + "]" + "\n" \
                                   + p.text + "\n" \
                                   + r"\pend" + "\n"
                 else:
