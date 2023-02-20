@@ -113,6 +113,12 @@ def main(xml):
                 q.replace_with(p_q_note)
                 note_q.extract()
 
+        # List note type translation if it has <hi> but no <p>
+        for translation in sp.notesStmt.find_all("note", attrs={"type": "translation"}):
+            if len(translation.find_all("hi")) > 0 and len(translation.find_all("p")) == 0:
+                print("Missing <p> in translation: ", xml)
+
+        # Do the job
         with open("latex2.tex", "a", encoding="utf8") as f_latex:
             with open("xml_latex_log.tsv", "a", encoding="utf8") as f_log:
                 # Write header
