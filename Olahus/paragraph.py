@@ -220,7 +220,7 @@ def choice_supplied(choice):
         choice.supplied.corr.extract()
         cor_sup = choice.supplied.text
         choice.string = cor_sup + "<" + cor_cor + "> &choice&"
-        print(choice.string)
+        # print(choice.string)
     elif choice.supplied.corr is not None and choice.supplied.corr.text.replace(" ", "") == "":
         choice.string = r"<\ldots{}> &choice&"
     else:
