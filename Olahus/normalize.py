@@ -46,6 +46,16 @@ def milestone_p(tag):
 
 
 def latex_escape(string):
+    # Space before edindex
+    string = string.replace("&notecritic&}\edindex[p", "&notecritic&} \edindex[p")
+    string = re.sub("([\w])(\\\edindex\[p)", r"\1 \2", string)
+
+    # Space between notecritic and edtext/choice
+    string = re.sub("(&notecritic&})(\\\edtext\{\w)", r"\1 \2", string)
+    string = re.sub("(&notecritic&})([\w<][\w\s<]*>)", r"\1 \2", string)
+    string = string.replace(r"&notecritic&}<\ldots{}>", r"&notecritic&} <\ldots{}>")
+
+    # Escape
     string = string.replace("_", r"\_")
     string = string.replace("-", r"\-")
     string = string.replace("#", r"\#")
@@ -55,7 +65,7 @@ def latex_escape(string):
     string = string.replace("&", "\&")
     string = string.replace(r"{[}BEKEZDÉSHATÁR{]}", "\n\\pend\n\n\\pstart\n")
 
-    # Replace false escapea
+    # Replace false escape
     string = string.replace("edindex{[}place{]}", "edindex[place]")
     string = string.replace("edindex{[}pers{]}", "edindex[pers]")
     string = string.replace("{\-1", "{-1")

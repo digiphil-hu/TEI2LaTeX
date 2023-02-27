@@ -75,16 +75,12 @@ def text2latex(soup, letternum, filename):
 
 def transform_header_body(xml):
     file_name = xml.lstrip("/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/NEWNAMES/")
-    # print(file_name)
+    print(file_name)
     with open(xml, "r", encoding="utf8") as f_xml:
         sp = BeautifulSoup(f_xml, "xml")
-        if "confluunt medicii" in sp.text:
-            print(sp.body)
 
         # Normalize xml: removes tab, linebreak, double space
         sp = normalize_text(sp, {"xml"})
-        if "confluunt medicii" in sp.text:
-            print(sp.body)
 
         # Delete <ref> tags from body and from header note type critIntro
         for item in sp.body.find_all("ref"):
