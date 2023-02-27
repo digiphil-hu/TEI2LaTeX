@@ -73,14 +73,18 @@ def text2latex(soup, letternum, filename):
     return text_latex
 
 
-def main(xml):
+def transform_header_body(xml):
     file_name = xml.lstrip("/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/NEWNAMES/")
-    print(file_name)
+    # print(file_name)
     with open(xml, "r", encoding="utf8") as f_xml:
         sp = BeautifulSoup(f_xml, "xml")
+        if "confluunt medicii" in sp.text:
+            print(sp.body)
 
         # Normalize xml: removes tab, linebreak, double space
         sp = normalize_text(sp, {"xml"})
+        if "confluunt medicii" in sp.text:
+            print(sp.body)
 
         # Delete <ref> tags from body and from header note type critIntro
         for item in sp.body.find_all("ref"):
@@ -145,7 +149,7 @@ def main(xml):
                           file=f_log)
 
 
-if __name__ == '__main__':
+def main():
     with open("xml_latex_log.tsv", "w", encoding="utf8") as f:
         print("filename", "\t", "num_note_critic", "\t", "num_add_insert", "\t", "num_add_corr", "\t",
               "num_del_alone", "\t", "num_choice", "\t", "num_quote", "\t", "num_seg", file=f)
@@ -153,18 +157,28 @@ if __name__ == '__main__':
         with open("begin.txt", "r", encoding="utf8") as f_r:
             start = f_r.read()
             f_w.write(start)
-    # dir_name_in = "/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML"
     dir_name_in = "/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/NEWNAMES/"
     dir_name_out = "Olahus/LaTeX"
     f_list = file_list(dir_name_in)
     begin = time.time()
-    # for i in f_list:
-    #     change_xml_filename(i)
+
     for i in f_list:
         out = i.replace(dir_name_in, dir_name_out).replace(".xml", ".tex")
-        main(i)
+        transform_header_body(i)
     with open("latex2.tex", "a", encoding="utf8") as f_w:
         # End of latex doc
         f_w.write(r"\end{document}")
     end = time.time()
     print(end - begin)
+
+
+def rename_files():
+    dir_name_in = "/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML"
+    f_list = file_list(dir_name_in)
+    for i in f_list:
+        change_xml_filename(i)
+
+
+if __name__ == '__main__':
+    main()
+    # rename_files()
