@@ -111,8 +111,10 @@ def paragraph(para, filename):  # <gap>
 
 
 def add_ins(add_ins_tag):
+    short_text = text_shortener(add_ins_tag.text)
     for choice in add_ins_tag.find_all("choice"):
         choice_supplied(choice)
+        short_text = "ADD MANUALLY"
     for del_tag in add_ins_tag.find_all("del"):
         just_del(del_tag)
 
@@ -123,7 +125,10 @@ def add_ins(add_ins_tag):
 
     a_text = add_ins_tag.text
     a_cor = add_ins_tag["corresp"]
-    a_new = r"\edtext{" + a_text + r"}{\Afootnote{\textit{" + a_cor + " add. &addins&}}}"
+    # a_new = r"\edtext{" + a_text + r"}{\Afootnote{\textit{" + a_cor + " add. &addins&}}}"
+    a_new = r"\edtext{" + a_text + r"}{\lemma{" + short_text + r"}\Afootnote{\textit{" \
+              + a_cor + " add. &addins&}}}"
+
     add_ins_tag.string = a_new
     add_ins_tag.unwrap()
 

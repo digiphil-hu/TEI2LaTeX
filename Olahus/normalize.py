@@ -11,6 +11,7 @@ def normalize_text(soup, what_to_do):
         soup_str = re.sub("corresp=\"Olahus\"", "corresp=\"O\"", soup_str)
         soup_str = re.sub("corresp=\"editor\"", "corresp=\" \"", soup_str)
         soup_str = re.sub("corresp=\"scriba\"", "corresp=\"scr\"", soup_str)
+        soup_str = re.sub("corresp=\"author\"", "corresp=\"auth\"", soup_str)
         soup_str = re.sub(r'''(</del>)\s+(<add corresp="[a-zA-Z]+" type="corr")''', r"\1\2", soup_str)
 
     if "all" in what_to_do:
@@ -48,7 +49,8 @@ def milestone_p(tag):
 def latex_escape(string):
     # Space before edindex
     string = string.replace("&notecritic&}\edindex[p", "&notecritic&} \edindex[p")
-    string = re.sub("([\w])(\\\edindex\[p)", r"\1 \2", string)
+    string = re.sub("([\w}])(\\\edindex\[p)", r"\1 \2", string)
+    string = string.replace(r"&delalone&}} \edindex[p", r"&delalone&}}\edindex[p")
 
     # Space between notecritic and edtext/choice
     string = re.sub("(&notecritic&})(\\\edtext\{\w)", r"\1 \2", string)
