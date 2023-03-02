@@ -93,7 +93,7 @@ def paragraph(para, filename):  # <gap>
     # seg type signature
     for s in para.find_all("seg"):
         s_new = r"\begin{flushright}" \
-                + s.text + "&seg&" + \
+                + s.text + " &seg&" + \
                 r"\end{flushright}"
         s.string = s_new
         s.unwrap()
@@ -117,18 +117,18 @@ def add_ins(add_ins_tag):
         short_text = "ADD MANUALLY"
     for del_tag in add_ins_tag.find_all("del"):
         just_del(del_tag)
+        short_text = "ADD MANUALLY"
 
+    a_text = add_ins_tag.text
     add_ins_tag = gap(add_ins_tag)
     add_ins_tag = person_place_name(add_ins_tag)
     add_ins_tag = hi_rend(add_ins_tag)
     add_ins_tag = note_critic(add_ins_tag)
 
-    a_text = add_ins_tag.text
     a_cor = add_ins_tag["corresp"]
     # a_new = r"\edtext{" + a_text + r"}{\Afootnote{\textit{" + a_cor + " add. &addins&}}}"
     a_new = r"\edtext{" + a_text + r"}{\lemma{" + short_text + r"}\Afootnote{\textit{" \
               + a_cor + " add. &addins&}}}"
-
     add_ins_tag.string = a_new
     add_ins_tag.unwrap()
 

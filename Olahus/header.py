@@ -35,7 +35,7 @@ def header2latex(soup):
     for has_resp_tag in soup.find_all("relatedItem", attrs={"type": "hasResponse"}):
         for has_resp_ref in has_resp_tag.find_all("ref"):
             has_resp_list.append(has_resp_ref.text)
-    has_resp = "-".join(has_resp_list)
+    has_resp = ", ".join(has_resp_list)
     if len(has_resp) < 3:
         has_resp = "~~~"
     header_str += r"\phantomsection\addcontentsline{toc}{section}{" + title_num + r".~" + title_main + "}" \

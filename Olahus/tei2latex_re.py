@@ -7,7 +7,7 @@ import time
 from bs4 import BeautifulSoup
 
 from Olahus.count import count_xml_body, count_latex_body, file_list, change_xml_filename
-from normalize import normalize_text, latex_escape
+from normalize import normalize_text, latex_escape, remove_xml_tags_from_latex
 from paragraph import paragraph
 from header import header2latex
 
@@ -75,7 +75,7 @@ def text2latex(soup, letternum, filename):
 
 def transform_header_body(xml):
     file_name = xml.lstrip("/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/NEWNAMES/")
-    print(file_name)
+    # print(file_name)
     with open(xml, "r", encoding="utf8") as f_xml:
         sp = BeautifulSoup(f_xml, "xml")
 
@@ -128,6 +128,7 @@ def transform_header_body(xml):
 
                 # Write text
                 t = text2latex(sp.find("text"), letternum=title_num, filename=file_name)
+                t = remove_xml_tags_from_latex(t)
                 f_latex.write(t)
 
                 # Write log
@@ -176,5 +177,6 @@ def rename_files():
 
 
 if __name__ == '__main__':
-    main()
     # rename_files()
+    main()
+

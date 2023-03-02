@@ -26,7 +26,6 @@ def normalize_text(soup, what_to_do):
         soup_str = soup_str.replace("]", "{]}")
         soup_str = soup_str.replace("(", "{(}")
         soup_str = soup_str.replace(")", "{)}")
-        soup_str = soup_str.replace("-", r"\-")
         soup_str = hi_rend(soup_str)
 
     else:
@@ -58,10 +57,9 @@ def latex_escape(string):
     string = string.replace(r"&notecritic&}<\ldots{}>", r"&notecritic&} <\ldots{}>")
 
     # Escape
-    string = string.replace("_", r"\_")
-    string = string.replace("-", r"\-")
-    string = string.replace("#", r"\#")
-    string = string.replace("%", r"\%")
+    string = string.replace("_", "\_")
+    string = string.replace("#", "\#")
+    string = string.replace("%", "\%")
     string = string.replace("[", "{[}")
     string = string.replace("]", "{]}")
     string = string.replace("&", "\&")
@@ -74,6 +72,12 @@ def latex_escape(string):
     string = string.replace("\Xtxtbeforenumber{[}A{]}", "\Xtxtbeforenumber[A]")
     string = string.replace("\Xtxtbeforenumber{[}B{]}", "\Xtxtbeforenumber[B]")
 
+    return string
+
+
+def remove_xml_tags_from_latex(string):
+    # Remove notecritic, deladd, delalone, addins, choice, seq and quote
+    string = re.sub(" \\\&\w+\\\&", "", string)
     return string
 
 
