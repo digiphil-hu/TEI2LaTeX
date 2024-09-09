@@ -220,11 +220,19 @@ def choice_supplied(choice):
     choice = gap(choice)
     choice = person_place_name(choice)
     choice = hi_rend(choice)
+    # if choice.supplied.corr is not None and choice.supplied.corr.string is not None:
+    #     cor_cor = choice.supplied.corr.text
+    #     choice.supplied.corr.extract()
+    #     cor_sup = choice.supplied.text
+    #     choice.string = cor_sup + "<" + cor_cor + "> &choice&"
+    #     # print(choice.string)
+
     if choice.supplied.corr is not None and choice.supplied.corr.string is not None:
-        cor_cor = choice.supplied.corr.text
-        choice.supplied.corr.extract()
+        cor_cor = "<" + choice.supplied.corr.text + ">"
+        choice.supplied.corr.string = cor_cor
+        choice.supplied.corr.unwrap()
         cor_sup = choice.supplied.text
-        choice.string = cor_sup + "<" + cor_cor + "> &choice&"
+        choice.string = cor_sup + "&choice&"
         # print(choice.string)
     elif choice.supplied.corr is not None and choice.supplied.corr.text.replace(" ", "") == "":
         choice.string = r"<\ldots{}> &choice&"

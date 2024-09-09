@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 from normalize import normalize_text, latex_escape
 
 
-def header2latex(soup):
+def header2latex(soup, num):
     header_str = ""
 
     header_str += r"\begin{center}" + "\n\n"
@@ -10,6 +10,9 @@ def header2latex(soup):
     # Title, letter metadata
     title_num = soup.fileDesc.titleStmt.find("title", attrs={"type": "num"})
     title_num = normalize_text(title_num, {"header"}).text
+    if title_num.replace(" ", "") == "":
+        title_num = str(num + 1)
+    print(title_num)
     title_main = soup.fileDesc.titleStmt.find("title", attrs={"type": "main"})
     title_main = normalize_text(title_main, {"header"}).text
     sent = soup.find("correspAction", attrs={"type": "sent"})
@@ -47,9 +50,18 @@ def header2latex(soup):
     header_str += r"\renewcommand{\thefootnoteA}{\arabic{footnoteA}}\setcounter{footnoteA}{0}" + "\n\n"
 
     # Insert manuscript description
-    institution = soup.institution.text.rstrip()
-    repository = soup.repository.text.rstrip()
-    pag_fol_num = soup.measure.text
+    if soup.find("institution"):
+        institution = soup.institution.text.rstrip()
+    else:
+        institution = "Unknown"
+    if soup.find("repository"):
+        repository = soup.repository.text.rstrip()
+    else:
+        repository = "Unknown"
+    if soup.find("measure"):
+        pag_fol_num = soup.measure.text
+    else:
+        pag_fol_num = ""
     if pag_fol_num.replace(" ", "") == "":
         p_fol = ""
     else:

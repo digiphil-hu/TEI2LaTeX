@@ -5,11 +5,11 @@
 
 import time
 from bs4 import BeautifulSoup
-
 from Olahus.count import count_xml_body, count_latex_body, file_list, change_xml_filename
 from normalize import normalize_text, latex_escape, remove_xml_tags_from_latex
 from paragraph import paragraph
 from header import header2latex
+import lxml
 
 
 def text2latex(soup, letternum, filename):
@@ -73,8 +73,8 @@ def text2latex(soup, letternum, filename):
     return text_latex
 
 
-def transform_header_body(xml):
-    file_name = xml.lstrip("/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/NEWNAMES/")
+def transform_header_body(xml, num):
+    file_name = xml.split("/")[-1]
     # print(file_name)
     with open(xml, "r", encoding="utf8") as f_xml:
         sp = BeautifulSoup(f_xml, "xml")
@@ -122,7 +122,7 @@ def transform_header_body(xml):
         with open("latex2.tex", "a", encoding="utf8") as f_latex:
             with open("xml_latex_log.tsv", "a", encoding="utf8") as f_log:
                 # Write header
-                h = header2latex(sp.teiHeader)
+                h = header2latex(sp.teiHeader, num)
                 f_latex.write(h[0])
                 title_num = h[1]
 
@@ -146,7 +146,7 @@ def transform_header_body(xml):
                           file=f_log)
 
 
-def main():
+def main(dir_name_in, dir_name_out):
     with open("xml_latex_log.tsv", "w", encoding="utf8") as f:
         print("filename", "\t", "num_note_critic", "\t", "num_add_insert", "\t", "num_add_corr", "\t",
               "num_del_alone", "\t", "num_choice", "\t", "num_quote", "\t", "num_seg", file=f)
@@ -154,14 +154,13 @@ def main():
         with open("begin.txt", "r", encoding="utf8") as f_r:
             start = f_r.read()
             f_w.write(start)
-    dir_name_in = "/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/NEWNAMES/"
-    dir_name_out = "Olahus/LaTeX"
     f_list = file_list(dir_name_in)
     begin = time.time()
 
-    for i in f_list:
+    for num, i in enumerate(f_list):
+        print(i)
         out = i.replace(dir_name_in, dir_name_out).replace(".xml", ".tex")
-        transform_header_body(i)
+        transform_header_body(i, num)
     with open("latex2.tex", "a", encoding="utf8") as f_w:
         # End of latex doc
         f_w.write(r"\end{document}")
@@ -178,5 +177,7 @@ def rename_files():
 
 if __name__ == '__main__':
     # rename_files()
-    main()
+    dir_name_in = "XML"
+    dir_name_out = "LaTeX"
+    main(dir_name_in, dir_name_out)
 

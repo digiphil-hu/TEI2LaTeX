@@ -208,7 +208,7 @@ def main(xml):
 
 
 if __name__ == '__main__':
-    dir_name_in = "/home/eltedh/PycharmProjects/TEI2LaTeX/Olahus/XML"
+    dir_name_in = "XML"
     f_list = file_list(dir_name_in)
     for i in f_list:
         main(i)
