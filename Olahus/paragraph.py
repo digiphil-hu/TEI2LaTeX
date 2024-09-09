@@ -232,7 +232,7 @@ def choice_supplied(choice):
         choice.supplied.corr.string = cor_cor
         choice.supplied.corr.unwrap()
         cor_sup = choice.supplied.text
-        choice.string = cor_sup + "&choice&"
+        choice.string = cor_sup + " &choice&"
         # print(choice.string)
     elif choice.supplied.corr is not None and choice.supplied.corr.text.replace(" ", "") == "":
         choice.string = r"<\ldots{}> &choice&"
