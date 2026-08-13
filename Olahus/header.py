@@ -1,5 +1,9 @@
 from bs4 import BeautifulSoup
-from normalize import normalize_text, latex_escape
+
+try:
+    from .normalize import normalize_text, latex_escape
+except ImportError:  # Support direct execution through tei2latex_re.py
+    from normalize import normalize_text, latex_escape
 
 
 def header2latex(soup, num):

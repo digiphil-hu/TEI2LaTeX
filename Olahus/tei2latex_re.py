@@ -4,12 +4,28 @@
 
 
 import time
+from pathlib import Path
+
 from bs4 import BeautifulSoup
-from Olahus.count import count_xml_body, count_latex_body, file_list, change_xml_filename
-from normalize import normalize_text, latex_escape, remove_xml_tags_from_latex
-from paragraph import paragraph
-from header import header2latex
-import lxml
+
+try:
+    from .count import count_xml_body, count_latex_body, file_list, change_xml_filename
+    from .normalize import normalize_text, latex_escape, remove_xml_tags_from_latex
+    from .paragraph import paragraph
+    from .header import header2latex
+    from .manual_corrections import write_manual_correction_report
+except ImportError:  # Support direct execution: python Olahus/tei2latex_re.py
+    from count import count_xml_body, count_latex_body, file_list, change_xml_filename
+    from normalize import normalize_text, latex_escape, remove_xml_tags_from_latex
+    from paragraph import paragraph
+    from header import header2latex
+    from manual_corrections import write_manual_correction_report
+
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+LATEX_OUTPUT = SCRIPT_DIR / "latex_olahus.tex"
+COUNT_LOG_OUTPUT = SCRIPT_DIR / "xml_latex_log.tsv"
+CORRECTION_REPORT_OUTPUT = SCRIPT_DIR / "xml_manual_corrections.txt"
 
 
 def text2latex(soup, letternum, filename):
@@ -119,8 +135,8 @@ def transform_header_body(xml, num):
                 print("Missing <p> in translation: ", xml)
 
         # Do the job!
-        with open("latex2.tex", "a", encoding="utf8") as f_latex:
-            with open("xml_latex_log.tsv", "a", encoding="utf8") as f_log:
+        with open(LATEX_OUTPUT, "a", encoding="utf8") as f_latex:
+            with open(COUNT_LOG_OUTPUT, "a", encoding="utf8") as f_log:
                 # Write header
                 h = header2latex(sp.teiHeader, num)
                 f_latex.write(h[0])
@@ -147,21 +163,26 @@ def transform_header_body(xml, num):
 
 
 def main(dir_name_in, dir_name_out):
-    with open("xml_latex_log.tsv", "w", encoding="utf8") as f:
+    with open(COUNT_LOG_OUTPUT, "w", encoding="utf8") as f:
         print("filename", "\t", "num_note_critic", "\t", "num_add_insert", "\t", "num_add_corr", "\t",
               "num_del_alone", "\t", "num_choice", "\t", "num_quote", "\t", "num_seg", file=f)
-    with open("latex2.tex", "w", encoding="utf8") as f_w:
-        with open("begin.txt", "r", encoding="utf8") as f_r:
+    with open(LATEX_OUTPUT, "w", encoding="utf8") as f_w:
+        with open(SCRIPT_DIR / "begin.txt", "r", encoding="utf8") as f_r:
             start = f_r.read()
             f_w.write(start)
     f_list = file_list(dir_name_in)
+    corrections = write_manual_correction_report(
+        f_list, CORRECTION_REPORT_OUTPUT
+    )
+    for correction in corrections:
+        print("MANUAL CORRECTION:", correction)
+    print(f"Manual correction report: {len(corrections)} error(s)")
     begin = time.time()
 
     for num, i in enumerate(f_list):
         print(i)
-        out = i.replace(dir_name_in, dir_name_out).replace(".xml", ".tex")
         transform_header_body(i, num)
-    with open("latex2.tex", "a", encoding="utf8") as f_w:
+    with open(LATEX_OUTPUT, "a", encoding="utf8") as f_w:
         # End of latex doc
         f_w.write(r"\end{document}")
     end = time.time()
@@ -177,7 +198,6 @@ def rename_files():
 
 if __name__ == '__main__':
     # rename_files()
-    dir_name_in = "XML"
-    dir_name_out = "LaTeX"
+    dir_name_in = SCRIPT_DIR / "XML"
+    dir_name_out = SCRIPT_DIR / "LaTeX"
     main(dir_name_in, dir_name_out)
-
