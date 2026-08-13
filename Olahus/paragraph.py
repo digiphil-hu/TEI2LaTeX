@@ -1,5 +1,7 @@
-from Olahus.normalize import previous_word, text_shortener, hi_rend, person_place_name, milestone_p, gap
-from normalize import normalize_text
+try:
+    from .normalize import previous_word, text_shortener, hi_rend, person_place_name, milestone_p, gap, normalize_text
+except ImportError:  # Support direct execution through tei2latex_re.py
+    from normalize import previous_word, text_shortener, hi_rend, person_place_name, milestone_p, gap, normalize_text
 
 
 def paragraph(para, filename):  # <gap>
@@ -55,9 +57,11 @@ def paragraph(para, filename):  # <gap>
 
     # <quote>
     for index, quote_actual in enumerate(para.find_all("quote")):
-        quote_note = para.quote.next_sibling
+        quote_note = quote_actual.next_sibling
+        while quote_note is not None and quote_note.name is None:
+            quote_note = quote_note.next_sibling
         if str(quote_note).startswith(r'''<note type="quote"''') is False:
-            print("ERROR: Missing <note> after <quote>")
+            print("ERROR: Missing <note> after <quote>:", quote_actual, quote_note)
 
         # children of quote: hi, names, gap, note
         quote_actual = gap(quote_actual)
@@ -243,5 +247,3 @@ def choice_supplied(choice):
         choice.string = ch_new
     # print(choice.string)
     choice.unwrap()
-
-
